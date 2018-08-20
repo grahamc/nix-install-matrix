@@ -1,0 +1,3 @@
+ ./testscript::runtest::43 testshell
+ ./testscript::testshell::16 nix-shell -p hello --run hello
+./testscript: line 16: nix-shell: command not found

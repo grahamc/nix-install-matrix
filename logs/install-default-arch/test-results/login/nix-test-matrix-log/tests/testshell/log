@@ -1,0 +1,6 @@
+ ./testscript::runtest::43 testshell
+ ./testscript::testshell::16 nix-shell -p hello --run hello
+these paths will be fetched (0.04 MiB download, 0.19 MiB unpacked):
+  /nix/store/nhna50x4ygw6xhqpkiwmrc2xh3x84y3z-hello-2.10
+copying path '/nix/store/nhna50x4ygw6xhqpkiwmrc2xh3x84y3z-hello-2.10' from 'https://cache.nixos.org'...
+Hello, world!

@@ -1,0 +1,2 @@
+ ./testscript::runtest::43 testexitok
+ ./testscript::testexitok::8 /bin/bash -c 'exit 0'

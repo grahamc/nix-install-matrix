@@ -1,0 +1,8 @@
+ - system: `"x86_64-linux"`
+ - host os: `Linux 4.15.10-1-ARCH, Arch Linux, noversion`
+ - multi-user?: `no`
+ - sandbox: `no`
+ - version: `nix-env (Nix) 2.0.4`
+ - channels(vagrant): `"nixpkgs-18.09pre149853.f0d6e22b7f0"`
+ - nixpkgs: `/home/vagrant/.nix-defexpr/channels/nixpkgs`
+

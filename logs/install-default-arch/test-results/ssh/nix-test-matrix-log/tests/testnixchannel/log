@@ -1,0 +1,3 @@
+ ./testscript::runtest::43 testnixchannel
+ ./testscript::testnixchannel::26 nix-channel --add https://nixos.org/channels/nixos-18.03 nixos-18-03
+./testscript: line 26: nix-channel: command not found

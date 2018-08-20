@@ -1,0 +1,13 @@
+ ./testscript::runtest::10 testnixchannel
+ ./testscript::testnixchannel::0 nix-channel --add https://nixos.org/channels/nixos-18.03 nixos-18-03
+ ./testscript::testnixchannel::0 nix-channel --update
+unpacking channels...
+created 5 symlinks in user environment
+ ./testscript::testnixchannel::1 nix-env -iA nixos-18-03.hello
+installing 'hello-2.10'
+building '/nix/store/3mpn8iy3mszdkh6bb5v3vx436fy8nbd5-user-environment.drv'...
+created 38 symlinks in user environment
+ ./testscript::testnixchannel::2 hello
+Hello, world!
+ ./testscript::testnixchannel::3 nix-env --uninstall 'hello.*'
+uninstalling 'hello-2.10'

@@ -1,0 +1,9 @@
+ ./testscript::runtest::10 testnixenv
+ ./testscript::testnixenv::0 nix-env -iA nixpkgs.hello
+installing 'hello-2.10'
+building '/nix/store/9pbjy2ry66c7mrwjxamn2na9b6k8fakr-user-environment.drv'...
+created 38 symlinks in user environment
+ ./testscript::testnixenv::0 hello
+Hello, world!
+ ./testscript::testnixenv::0 nix-env --uninstall 'hello.*'
+uninstalling 'hello-2.10'

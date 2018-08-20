@@ -1,0 +1,18 @@
+ ./testscript::runtest::43 testnixchannel
+ ./testscript::testnixchannel::26 nix-channel --add https://nixos.org/channels/nixos-18.03 nixos-18-03
+ ./testscript::testnixchannel::27 nix-channel --update
+unpacking channels...
+created 5 symlinks in user environment
+ ./testscript::testnixchannel::28 nix-env -iA nixos-18-03.hello
+installing 'hello-2.10'
+these paths will be fetched (5.48 MiB download, 20.43 MiB unpacked):
+  /nix/store/hwwqshlmazzjzj7yhrkyjydxamvvkfd3-glibc-2.26-131
+  /nix/store/nic2bl8ry6vfyxr9717983d5b2l4sn1c-hello-2.10
+copying path '/nix/store/hwwqshlmazzjzj7yhrkyjydxamvvkfd3-glibc-2.26-131' from 'https://cache.nixos.org'...
+copying path '/nix/store/nic2bl8ry6vfyxr9717983d5b2l4sn1c-hello-2.10' from 'https://cache.nixos.org'...
+building '/nix/store/zryi27fbw1yrvxz00cspcj3h1law372s-user-environment.drv'...
+created 38 symlinks in user environment
+ ./testscript::testnixchannel::29 hello
+Hello, world!
+ ./testscript::testnixchannel::30 nix-env --uninstall 'hello.*'
+uninstalling 'hello-2.10'

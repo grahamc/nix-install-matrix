@@ -1,0 +1,3 @@
+ ./testscript::runtest::43 testnixenv
+ ./testscript::testnixenv::20 nix-env -iA nixpkgs.hello
+./testscript: line 20: nix-env: command not found

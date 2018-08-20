@@ -1,0 +1,2 @@
+ ./testscript::runtest::43 testexitfail
+ ./testscript::testexitfail::12 /bin/bash -c 'exit 1'
