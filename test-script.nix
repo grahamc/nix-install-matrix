@@ -42,6 +42,9 @@ let
 
     set -eu
 
+    destdir=$1
+    shift
+
     scratch=$(mktemp -d -t tmp.XXXXXXXXXX)
     finish() {
       rm -rf "$scratch"
@@ -56,26 +59,44 @@ let
     }
     trap finish EXIT
 
+    mkdir log-results
+
     cp ${mkVagrantfile name details} ./Vagrantfile
-    vagrant up
+    cp ./Vagrantfile ./log-results/
 
-    vagrant ssh -- tee install < ${shellcheckedScript installScript.name installScript.script}
-    vagrant ssh -- chmod +x install
+    echo "${name}" > ./log-results/image-name
+    echo "${installScript.name}" > ./log-results/install-method
 
-    vagrant ssh -- tee testscript < ${testScript name details}
-    vagrant ssh -- chmod +x testscript
+    (
+      vagrant up
 
-    vagrant ssh -- ./install 2>&1 \
-      | sed -e "s/^/${name}-install    /"
+      vagrant ssh -- tee install < ${shellcheckedScript installScript.name installScript.script}
+      vagrant ssh -- chmod +x install
 
-    vagrant ssh -- bash --login -i ./testscript 2>&1 \
-      | sed -e "s/^/${name}-test-login-interactive    /"
+      vagrant ssh -- tee testscript < ${testScript name details}
+      vagrant ssh -- chmod +x testscript
 
-    vagrant ssh -- bash -i ./testscript 2>&1 \
-      | sed -e "s/^/${name}-test-interactive    /"
+      vagrant ssh -- ./install 2>&1 \
+        | sed -e "s/^/${name}-install    /"
 
-    vagrant ssh -- ./testscript 2>&1 \
-      | sed -e "s/^/${name}-test-ssh    /"
+      set +e
+
+      runtest() {
+        name=$1
+        shift
+        vagrant ssh -- "$@" ./testscript 2>&1 \
+          | sed -e "s/^/${name}-test-$name    /"
+        mkdir -p "./log-results/test-results/$name"
+        vagrant ssh -- cat ./nix-test-matrix-log.tar | tar -xC "./log-results/test-results/$name"
+      }
+
+      runtest login bash --login
+      runtest login-interactive bash --login -i
+      runtest interactive bash -i
+      runtest ssh
+    ) 2>&1 | tee ./log-results/run-log
+
+    mv ./log-results "$destdir"
   '';
 
   testCases = installMethods: images:
@@ -97,13 +118,19 @@ let
         (name: _: if imageNameFilter == null then true
           else name == imageNameFilter) srcs.images);
 
-in pkgs.writeScript "run-tests.sh"
+in shellcheckedScript "run-tests.sh"
 ''
   #!/bin/sh
 
-  set -x
+  set -ux
+
+  destdir=$(realpath "$1")
+  mkdir -p "$destdir"
+  shift
 
   ${pkgs.lib.concatStringsSep "\n"
-    (builtins.map (case: mkTestScript case.installMethod case.imageName case.imageConfig) casesToRun
+  (builtins.map (case:
+    let cmd = mkTestScript case.installMethod case.imageName case.imageConfig;
+    in "${cmd} \"$destdir/${case.installMethod.name}-${case.imageName}\"") casesToRun
   )}
 ''

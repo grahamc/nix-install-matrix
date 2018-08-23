@@ -27,25 +27,46 @@ testnixchannel() (
   nix-channel --update
   nix-env -iA nixos-18-03.hello
   hello
+  nix-env --uninstall 'hello.*'
 )
 
 runtest() {
     testFn=$1
+
+    local testdir="$TESTDIR/tests/$testFn"
+    mkdir -p "$testdir"
+
     start=$(date '+%s')
     echo "Starting: $testFn"
     (
         set -ex
-        "$testFn" | sed 's/^/    /'
-    )
+        "$testFn"
+    ) 2>&1 | tee "$testdir/log" | sed 's/^/    /'
     exitcode=$?
     end=$(date '+%s')
-    echo "Finishing: $testFn, duration:$((end - start)) result:$exitcode"
+    duration=$((end - start))
+    echo "$exitcode" > "$testdir/exitcode"
+    echo "$duration" > "$testdir/duration"
+
+    echo "Finishing: $testFn, duration:$duration result:$exitcode"
 }
 
-(
-    runtest testexitok
-    runtest testexitfail
-    runtest testshell
-    runtest testnixenv
-    runtest testnixchannel
-) 2>&1
+main() {
+    readonly TESTDIR=./nix-test-matrix-log
+    rm -rf "$TESTDIR"
+    mkdir "$TESTDIR"
+
+    uname -a > "$TESTDIR/uname"
+    nix-shell -p nix-info --run "nix-info -m" > "$TESTDIR/nix-info"
+    (
+        runtest testexitok
+        runtest testexitfail
+        runtest testshell
+        runtest testnixenv
+        runtest testnixchannel
+    )
+
+    tar -cf ./nix-test-matrix-log.tar "$TESTDIR"
+}
+
+main
