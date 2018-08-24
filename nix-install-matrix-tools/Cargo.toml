@@ -1,0 +1,7 @@
+[package]
+name = "nix-install-matrix-tools"
+version = "0.1.0"
+authors = ["Graham Christensen <graham.christensen@target.com>"]
+
+[dependencies]
+structopt = "0.2"
