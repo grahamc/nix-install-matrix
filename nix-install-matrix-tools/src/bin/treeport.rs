@@ -91,11 +91,11 @@ impl FileTree {
 
 fn print_tree(node: &FileTreeNode) -> String {
     let sub = match node {
-        FileTreeNode::File(name, _handle) => {
+        &FileTreeNode::File(ref name, ref _handle) => {
             format!("-> file:{}", name)
         }
 
-        FileTreeNode::Directory(name, tree) => {
+        &FileTreeNode::Directory(ref name, ref tree) => {
             let lines = tree.files
                 .iter()
                 .flat_map(|(_name, node)| {
@@ -124,6 +124,7 @@ fn parse_results(top: FileTreeNode) {
         };
 
         for (name, node) in environmentdirs.files.into_iter() {
+            println!("{:?}", name);
             if let FileTreeNode::Directory(envname, testdatadir) = node {
                 let mut env = TestEnvironment {
                     name: name.to_string(),
@@ -138,36 +139,39 @@ fn parse_results(top: FileTreeNode) {
                         }
 
                         FileTreeNode::Directory(_, testnodes) => {
+                            /*
                             for (subname, subnode) in testnodes.files.into_iter() {
                                 if let FileTreeNode::Directory(testname, testnode) = subnode {
-                                                                for (subname, subnode) in testnodes.files.into_iter() {
-                                    if let FileTreeNode::Directory(_, testresults) = testnode.files.remove("nix-test-matrix-log").unwrap() {
+                                    for (subname, subnode) in testnodes.files.into_iter() {
+                                        if let FileTreeNode::Directory(_, testresults) = testnode.files.remove("nix-test-matrix-log").unwrap() {
 
-                                        let mut run = TestRun {
-                                            details: HashMap::new(),
-                                            tests: HashMap::new(),
-                                        };
+                                            let mut run = TestRun {
+                                                details: HashMap::new(),
+                                                tests: HashMap::new(),
+                                            };
 
-                                        for (testname, testresults) in testresults.files.into_iter() {
-                                            match node {
-                                                FileTreeNode::File(detailname, handle) => {
-                                                    run.details.insert(detailname, handle);
-                                                }
+                                            for (testname, testresults) in testresults.files.into_iter() {
+                                                match node {
+                                                    FileTreeNode::File(detailname, handle) => {
+                                                        run.details.insert(detailname, handle);
+                                                    }
 
-                                                FileTreeNode::Directory(testname, testnodes) => {
+                                                    FileTreeNode::Directory(testname, testnodes) => {
 
+                                                    }
                                                 }
                                             }
+
+                                            println!("{:?}", run);
+                                            env.runs.insert(testname, run);
                                         }
-
-
-                                        println!("{:?}", run);
-                                        env.runs.insert(testname, run);
                                     }
+
                                 } else {
                                     panic!("why is there a file here");
                                 }
                             }
+                            */
                         }
                     }
                 }
