@@ -127,11 +127,15 @@ in shellcheckedScript "run-tests.sh"
 ''
   #!/bin/sh
 
-  set -ux
+  set -eux
+
+  PATH="${pkgs.coreutils}/bin/:$PATH"
 
   destdir=$(realpath "$1")
   mkdir -p "$destdir"
   shift
+
+  set +e
 
   ${pkgs.lib.concatStringsSep "\n"
   (builtins.map (case:

@@ -375,17 +375,20 @@ fn write_data(table: &ResultTable, out: &mut File) -> Result<(), io::Error> {
     let env_results: Vec<String> = table.environments
         .iter()
         .map(|environment| format!(r#"
+<thead>
   <tr class="environment-row">
-    <th colspan=2 class="environment-name">{environment}</th>
-    {testcase_names}
-  </tr>
-  <tr class="environment-details-row">
-    <td rowspan={scenario_row_count} class="environment-details-cell">
+    <th colspan={scenario_td_count} class="environment-name">{environment}</th>
+</tr>
+    <td colspan={scenario_td_count}>
 {environment_details}
-    </td>
-    <td colspan={testcase_td_count}>&nbsp</td>
+</td>
+</tr>
+<tr>
+    <td>&nbsp;</td>{scenario_names}
   </tr>
+</thead><tbody>
 {test_result_rows}
+</tbody>
 
 "#,
                                    environment=environment,
@@ -396,32 +399,32 @@ fn write_data(table: &ResultTable, out: &mut File) -> Result<(), io::Error> {
                                            format!("<p><strong>{name}:</strong> <tt>{data}</tt></p>",
                                                    name=name, data=data)
                                        } else {
-                                           format!(r##"<p><strong>{name}:</strong><br /><a href="#detail-{environment}-{name}">(see full dataset)</a></p>"##,
+                                           format!(r##"<p><strong>{name}:</strong><a href="#detail-{environment}-{name}">(see full dataset)</a></p>"##,
                                                    environment=environment,
                                                    name=name)
                                        }
                                    })
                                    .collect::<Vec<String>>()
                                    .join("\n"),
-                                   scenario_row_count = table.scenarios.len() + 1,
-                                   testcase_td_count = table.scenarios.len(),
-                                   testcase_names = table.testcases.iter()
-                                   .map(|name| format!("<td class=testcase-name>{}</td>", name))
+                                   scenario_td_count = table.scenarios.len() + 1,
+                                   scenario_names = table.scenarios.iter()
+                                   .map(|name| format!("<td class=scenario-name>{}</td>", name))
                                    .collect::<Vec<String>>()
                                    .join("\n"),
-                                   test_result_rows = table.scenarios
+                                   test_result_rows = table.testcases
                                    .iter()
-                                   .map(|scenario_name| format!(r#"
-<tr class="result-status-row"><td class="scenario-name">{scenario_name}</td>
+                                   .map(|testcase_name| format!(r#"
+<tr class="result-status-row"><td class="testcase-name">{testcase_name}</td>
 {test_run_results}
 </tr>
 "#,
-                                                                scenario_name = scenario_name,
+                                                                testcase_name = testcase_name,
                                                                 test_run_results =
-                                                                table.testcases.iter()
-                                                                .map(|testcase|
+                                                                table.scenarios.iter()
+
+                                                                .map(|scenario_name|
                                                                      {
-                                                                         match table.get_result(environment, scenario_name, testcase) {
+                                                                         match table.get_result(environment, scenario_name, testcase_name) {
                                                                              Some((success, test_duration, log_sample)) => {
                                                                                  let passfail: String;
                                                                                  let passtext: String;
@@ -442,7 +445,7 @@ fn write_data(table: &ResultTable, out: &mut File) -> Result<(), io::Error> {
 "##,
                                                                                          environment=environment,
                                                                                          scenario=scenario_name,
-                                                                                         testcase=testcase,
+                                                                                         testcase=testcase_name,
                                                                                          passfail=passfail,
                                                                                          passfailtext=passtext,
                                                                                          test_duration=test_duration,
@@ -487,11 +490,12 @@ tr.environment-row > td, tr.environment-row > th {{
     border-top: 2px solid black;
 }}
 
-.testcase-name {{
+.scenario-name {{
     font-style: italic;
+    text-align: center;
 }}
 
-.scenario-name {{
+.testcase-name {{
     font-style: italic;
     text-align: right;
     vertical-align: top;
@@ -529,9 +533,8 @@ td.environment-details-cell {{
   padding: 10px; 10px 10px 10px;
 }}
 
-
-tr.result-status-row > td {{
-  border-top: none;
+tr p {{
+  margin: 2px;
 }}
 
 .test-result.test-result-fail {{
@@ -555,13 +558,18 @@ tr.result-status-row > td {{
   text-align: center;
 }}
 
+.environment-name {{
+    background-color: black;
+    color: white;
+}}
+
+pre {{
+  max-width: 100%;
+  overflow: auto;
+}}
+
 </style>
 <table borders=1>
-<tr>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<th colspan={number_of_testcases}>testcases</th>
-</tr>
 {environment_results}
 </table>
 <h1>all logs</h1>
@@ -569,17 +577,17 @@ tr.result-status-row > td {{
 <h1>all details</h1>
 {all_details}
 "#,
-                      number_of_testcases=table.testcases.len(),
                       environment_results=env_results.join("\n"),
                       logs=table.results
                       .iter()
                       .map(|((environment, scenario, testcase), (exitcode, duration, log))| {
-                          format!(r#"
+                          format!(r##"
 <h2 id="{environment}-{scenario}-{testcase}">{environment}-{scenario}-{testcase}</h2>
 <pre>
 {log}
 </pre>
-"#,
+<a href="#{environment}-{scenario}-{testcase}">top of log</a>
+"##,
                                   environment=environment,
                                   scenario=scenario,
                                   testcase=testcase,
@@ -592,7 +600,11 @@ tr.result-status-row > td {{
                       .iter()
                       .flat_map(|(environment, details)| {
                           details.iter().map(|(name,data)| {
-                              format!(r#"<h2 id="detail-{environment}-{name}">{environment}-{name}</h1><pre>{data}</pre>"#,
+                              format!(r##"
+<h2 id="detail-{environment}-{name}">{environment}-{name}</h1>
+<pre>{data}</pre>
+<a href="#detail-{environment}-{name}">top of data</a>
+"##,
                                       environment=environment,
                                       name=name,
                                       data=data
