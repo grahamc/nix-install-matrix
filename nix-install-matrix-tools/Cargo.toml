@@ -5,3 +5,4 @@ authors = ["Graham Christensen <graham.christensen@target.com>"]
 
 [dependencies]
 structopt = "0.2"
+regex = "1"
