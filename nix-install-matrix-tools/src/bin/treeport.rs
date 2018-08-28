@@ -330,12 +330,24 @@ struct ResultTable {
     scenarios: HashSet<String>,
     testcases: HashSet<String>,
     // environment, scenario, testcase
-    results: HashMap<(String, String, String), (u8, u16, String)>
+    results: HashMap<TestResultIdentifier, (u8, u16, String)>
+}
+
+#[derive(Debug,Eq,PartialEq,Hash)]
+struct TestResultIdentifier {
+    environment: String,
+    scenario: String,
+    testcase: String,
 }
 
 impl ResultTable {
     fn get_result(&self, environment: &str, scenario: &str, testcase: &str) -> Option<&(u8, u16, String)> {
-        self.results.get(&(environment.to_string(), scenario.to_string(), testcase.to_string()))
+        let id = TestResultIdentifier {
+            environment: environment.to_string(),
+            scenario: scenario.to_string(),
+            testcase: testcase.to_string(),
+        };
+        self.results.get(&id)
     }
 
     fn get_environment_details(&self, environment: &str) -> Option<&HashMap<String, String>> {
@@ -362,7 +374,12 @@ fn results_table(envs: TestEnvironments) -> ResultTable {
 
             for (case, mut test) in run.tests.into_iter() {
                 results.testcases.insert(case.clone());
-                results.results.insert((environment.name.clone(), scenario.clone(), case),
+                let id = TestResultIdentifier {
+                    environment: environment.name.clone(),
+                    scenario: scenario.clone(),
+                    testcase: case,
+                };
+                results.results.insert(id,
                                        (test.exitcode, test.duration, read_file_string(&mut test.log)));
             }
         }
@@ -583,7 +600,7 @@ pre {{
                       environment_results=env_results.join("\n"),
                       logs=table.results
                       .iter()
-                      .map(|(&(ref environment, ref scenario, ref testcase), &(ref exitcode, ref duration, ref log))| {
+                      .map(|(ref id, &(ref exitcode, ref duration, ref log))| {
                           format!(r##"
 <h2 id="{environment}-{scenario}-{testcase}">{environment}-{scenario}-{testcase}</h2>
 <pre>
@@ -591,9 +608,9 @@ pre {{
 </pre>
 <a href="#{environment}-{scenario}-{testcase}">top of log</a>
 "##,
-                                  environment=environment,
-                                  scenario=scenario,
-                                  testcase=testcase,
+                                  environment=id.environment,
+                                  scenario=id.scenario,
+                                  testcase=id.testcase,
                                   log=log
                           )
                       })
