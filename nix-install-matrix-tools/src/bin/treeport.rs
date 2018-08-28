@@ -324,13 +324,20 @@ struct TestResult {
 }
 
 #[derive(Debug)]
+struct InMemoryTestResult {
+    duration: u16,
+    exitcode: u8,
+    log: String
+}
+
+#[derive(Debug)]
 struct ResultTable {
     environments: HashSet<String>, // HashMap<String, File>)>,
     environment_details: HashMap<String, HashMap<String, String>>,
     scenarios: HashSet<String>,
     testcases: HashSet<String>,
     // environment, scenario, testcase
-    results: HashMap<TestResultIdentifier, (u8, u16, String)>
+    results: HashMap<TestResultIdentifier, InMemoryTestResult>
 }
 
 #[derive(Debug,Eq,PartialEq,Hash)]
@@ -341,7 +348,7 @@ struct TestResultIdentifier {
 }
 
 impl ResultTable {
-    fn get_result(&self, environment: &str, scenario: &str, testcase: &str) -> Option<&(u8, u16, String)> {
+    fn get_result(&self, environment: &str, scenario: &str, testcase: &str) -> Option<&InMemoryTestResult> {
         let id = TestResultIdentifier {
             environment: environment.to_string(),
             scenario: scenario.to_string(),
@@ -379,8 +386,14 @@ fn results_table(envs: TestEnvironments) -> ResultTable {
                     scenario: scenario.clone(),
                     testcase: case,
                 };
-                results.results.insert(id,
-                                       (test.exitcode, test.duration, read_file_string(&mut test.log)));
+
+                let value = InMemoryTestResult {
+                    exitcode: test.exitcode,
+                    duration: test.duration,
+                    log: read_file_string(&mut test.log),
+                };
+
+                results.results.insert(id, value);
             }
         }
     }
@@ -442,15 +455,15 @@ fn write_data(table: &ResultTable, out: &mut File) -> Result<(), io::Error> {
                                                                 .map(|scenario_name|
                                                                      {
                                                                          match table.get_result(environment, scenario_name, testcase_name) {
-                                                                             Some(&(success, test_duration, ref log_sample)) => {
+                                                                             Some(ref result) => {
                                                                                  let passfail: String;
                                                                                  let passtext: String;
-                                                                                 if success == 0 {
+                                                                                 if result.exitcode == 0 {
                                                                                      passfail = format!("pass");
                                                                                      passtext = format!("pass");
                                                                                  } else {
                                                                                      passfail = format!("fail");
-                                                                                     passtext = format!("exit code {}", success);
+                                                                                     passtext = format!("exit code {}", result.exitcode);
                                                                                  };
 
                                                                                  format!(r##"
@@ -465,8 +478,8 @@ fn write_data(table: &ResultTable, out: &mut File) -> Result<(), io::Error> {
                                                                                          testcase=testcase_name,
                                                                                          passfail=passfail,
                                                                                          passfailtext=passtext,
-                                                                                         test_duration=test_duration,
-                                                                                         logs=nl2br(&sample_log_end(&log_sample)))
+                                                                                         test_duration=result.duration,
+                                                                                         logs=nl2br(&sample_log_end(&result.log)))
                                                                              },
                                                                              None => {
                                                                                  format!(r#"
@@ -600,7 +613,7 @@ pre {{
                       environment_results=env_results.join("\n"),
                       logs=table.results
                       .iter()
-                      .map(|(ref id, &(ref exitcode, ref duration, ref log))| {
+                      .map(|(ref id, ref result)| {
                           format!(r##"
 <h2 id="{environment}-{scenario}-{testcase}">{environment}-{scenario}-{testcase}</h2>
 <pre>
@@ -611,7 +624,7 @@ pre {{
                                   environment=id.environment,
                                   scenario=id.scenario,
                                   testcase=id.testcase,
-                                  log=log
+                                  log=result.log
                           )
                       })
                       .collect::<Vec<String>>()
