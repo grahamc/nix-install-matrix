@@ -19,13 +19,8 @@ let
     Vagrant.configure("2") do |config|
       config.vm.box = "${details.image}"
       config.vm.provision "shell", inline: <<-SHELL
-    ${details.preInstall or "echo 'No preInstall rules.'"}
+    ${details.preInstall}
       SHELL
-      config.vm.provision "shell", privileged: false, inline: <<-SHELL
-
-    ${details.preInstallUnprivileged or "echo 'No preInstallUnprivileged rules.'"}
-      SHELL
-      config.vm.synced_folder ".", "/vagrant", disabled: true
       config.vm.provider "virtualbox" do |vb|
         vb.memory = "2048"
 
