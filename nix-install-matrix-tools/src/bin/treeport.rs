@@ -377,7 +377,7 @@ fn write_data(table: &ResultTable, out: &mut File) -> Result<(), io::Error> {
         .map(|environment| format!(r#"
 <thead>
   <tr class="environment-row">
-    <th colspan={scenario_td_count} class="environment-name">{environment}</th>
+    <th colspan={scenario_td_count} class="environment-name" id="{environment}">{environment}</th>
 </tr>
     <td colspan={scenario_td_count}>
 {environment_details}
@@ -569,6 +569,9 @@ pre {{
 }}
 
 </style>
+<ul>
+{environment_index}
+</ul>
 <table borders=1>
 {environment_results}
 </table>
@@ -594,6 +597,15 @@ pre {{
                                   log=log
                           )
                       })
+                      .collect::<Vec<String>>()
+                      .join("\n"),
+                      environment_index=table.environments
+                      .iter()
+                      .map(|environment| format!(r##"
+<li><a href="#{environment}">{environment}</a></li>
+"##,
+                                                 environment=environment,
+                      ))
                       .collect::<Vec<String>>()
                       .join("\n"),
                       all_details=table.environment_details
