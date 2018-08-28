@@ -425,10 +425,10 @@ fn write_data(table: &ResultTable, out: &mut File) -> Result<(), io::Error> {
                                                                 .map(|scenario_name|
                                                                      {
                                                                          match table.get_result(environment, scenario_name, testcase_name) {
-                                                                             Some((success, test_duration, log_sample)) => {
+                                                                             Some(&(success, test_duration, ref log_sample)) => {
                                                                                  let passfail: String;
                                                                                  let passtext: String;
-                                                                                 if *success == 0 {
+                                                                                 if success == 0 {
                                                                                      passfail = format!("pass");
                                                                                      passtext = format!("pass");
                                                                                  } else {
@@ -449,7 +449,7 @@ fn write_data(table: &ResultTable, out: &mut File) -> Result<(), io::Error> {
                                                                                          passfail=passfail,
                                                                                          passfailtext=passtext,
                                                                                          test_duration=test_duration,
-                                                                                         logs=nl2br(&sample_log_end(log_sample)))
+                                                                                         logs=nl2br(&sample_log_end(&log_sample)))
                                                                              },
                                                                              None => {
                                                                                  format!(r#"
@@ -580,7 +580,7 @@ pre {{
                       environment_results=env_results.join("\n"),
                       logs=table.results
                       .iter()
-                      .map(|((environment, scenario, testcase), (exitcode, duration, log))| {
+                      .map(|(&(ref environment, ref scenario, ref testcase), &(ref exitcode, ref duration, ref log))| {
                           format!(r##"
 <h2 id="{environment}-{scenario}-{testcase}">{environment}-{scenario}-{testcase}</h2>
 <pre>
@@ -631,8 +631,4 @@ fn main() {
     print!("{:?}", tree);
     let results = results_table(parse_results(tree));
     write_data(&results, &mut out).unwrap();
-
-
-
-
 }
