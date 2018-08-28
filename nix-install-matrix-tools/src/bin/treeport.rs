@@ -206,7 +206,7 @@ fn parse_results(top: FileTreeNode) -> TestEnvironments {
                         // Enter ./log-output/test-environment/test-results/
                         FileTreeNode::Directory(testresultfilename, testrunnode) => {
                             if testresultfilename != "test-results" {
-                                panic!("Directory should be named test-results");
+                                panic!("Directory should be named test-results, is named {}", testresultfilename);
                             }
 
                             for (testname, testrunnode) in testrunnode.files.into_iter() {
