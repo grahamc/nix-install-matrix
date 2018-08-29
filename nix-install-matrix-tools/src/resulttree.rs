@@ -68,7 +68,7 @@ pub fn parse_results(top: FileTreeNode) -> TestEnvironments {
                 runs: HashMap::new(),
             };
 
-            let testresultsdirectory = environmentnode.subtree.directory("test-results").expect("Missing test-results directory");
+            let environment_scenario_directory = environmentnode.subtree.directory("test-results").expect("Missing test-results directory");
             let (environment_detail_files, extra_directories) = environmentnode.subtree.partition();
             if extra_directories.len() > 0 {
                 panic!("Expected only one directory named test-results: {:?}", extra_directories);
@@ -78,7 +78,7 @@ pub fn parse_results(top: FileTreeNode) -> TestEnvironments {
                 env.details.insert(environment_detail_file.name, read_file_string(&mut File::open(environment_detail_file.path).unwrap()));
             }
 
-            let (files, testscenarios) = testresultsdirectory.subtree.partition();
+            let (files, testscenarios) = environment_scenario_directory.subtree.partition();
             if files.len() > 0 {
                 panic!("unexpected files: {:?}", files);
             }
