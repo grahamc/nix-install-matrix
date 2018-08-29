@@ -55,9 +55,9 @@ pub fn parse_results(top: FileTreeNode) -> TestEnvironments {
     // Traverse down from . in to ./log-output
     if let FileTreeNode::Directory(_, environmentdirs) = top {
 
-        let (files, environmentdirectories) = environmentdirs.partition();
-        if files.len() > 0 {
-            panic!("Unexpected files: {:?}", files);
+        let (extra_files, environmentdirectories) = environmentdirs.partition();
+        if extra_files.len() > 0 {
+            panic!("Unexpected files: {:?}", extra_files);
         }
 
         // Traverse from ./log-output/ in to ./log-output/test-environment
