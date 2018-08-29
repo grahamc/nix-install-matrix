@@ -78,12 +78,12 @@ pub fn parse_results(top: FileTreeNode) -> TestEnvironments {
                 env.details.insert(environment_detail_file.name, read_file_string(&mut File::open(environment_detail_file.path).unwrap()));
             }
 
-            let (files, testscenarios) = environment_scenario_directory.subtree.partition();
-            if files.len() > 0 {
-                panic!("unexpected files: {:?}", files);
+            let (extra_files, test_scenarios_directories) = environment_scenario_directory.subtree.partition();
+            if extra_files.len() > 0 {
+                panic!("unexpected files: {:?}", extra_files);
             }
 
-            for mut scenariodirectorynode in testscenarios {
+            for mut scenariodirectorynode in test_scenarios_directories {
                 let mut runs = TestRun {
                     details: HashMap::new(),
                     tests: HashMap::new(),
