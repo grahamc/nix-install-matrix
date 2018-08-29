@@ -55,13 +55,13 @@ pub fn parse_results(top: FileTreeNode) -> TestEnvironments {
     // Traverse down from . in to ./log-output
     if let FileTreeNode::Directory(_, environmentdirs) = top {
 
-        let (files, directories) = environmentdirs.partition();
+        let (files, environmentdirectories) = environmentdirs.partition();
         if files.len() > 0 {
             panic!("Unexpected files: {:?}", files);
         }
 
         // Traverse from ./log-output/ in to ./log-output/test-environment
-        for mut environmentnode in directories.into_iter() {
+        for mut environmentnode in environmentdirectories.into_iter() {
             let mut env = TestEnvironment {
                 name: environmentnode.name.to_string(),
                 details: HashMap::new(),
