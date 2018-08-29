@@ -3,25 +3,18 @@ extern crate structopt;
 extern crate regex;
 extern crate nix_install_matrix_tools;
 
-use nix_install_matrix_tools::filetree::FileTreeNode;
 use nix_install_matrix_tools::filetree::FileTree;
 use nix_install_matrix_tools::resulttree::TestEnvironments;
 use nix_install_matrix_tools::resulttree::read_file_string;
 use nix_install_matrix_tools::resulttree::parse_results;
 
 use std::io::Write;
-use std::ffi::OsString;
-use std::io::BufRead;
 use std::io;
-use std::io::BufReader;
 use std::path::PathBuf;
 use structopt::StructOpt;
-use std::fs;
-use std::path::Path;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fs::File;
-use std::io::Read;
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "basic")]
@@ -40,16 +33,6 @@ fn nl2br(logs: &str) -> String {
         .split("\n")
         .map(|s| format!("{}<br>\n", s))
         .collect::<Vec<String>>()
-        .join("\n")
-}
-
-fn sample_log(logs: &str) -> String {
-    logs
-        .split("\n")
-        .collect::<Vec<&str>>()
-        .into_iter()
-        .take(3)
-        .collect::<Vec<&str>>()
         .join("\n")
 }
 
@@ -442,6 +425,7 @@ fn main() {
 
     let tree = FileTree::new(&opt.input).unwrap();
     let mut out = File::create(&opt.output).unwrap();
+
 
     print!("{:?}", tree);
     let results = results_table(parse_results(tree));

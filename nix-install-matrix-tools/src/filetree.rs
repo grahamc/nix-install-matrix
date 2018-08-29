@@ -10,6 +10,7 @@ pub struct FileTree {
     pub files: HashMap<String, FileTreeNode>
 }
 
+
 #[derive(Debug)]
 pub enum FileTreeNode {
     File(String, PathBuf),

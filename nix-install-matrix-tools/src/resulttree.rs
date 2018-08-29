@@ -78,7 +78,7 @@ pub fn parse_results(top: FileTreeNode) -> TestEnvironments {
                                 panic!("Directory should be named test-results, is named {}", testresultfilename);
                             }
 
-                            for (testname, testrunnode) in testrunnode.files.into_iter() {
+                            for (_testname, testrunnode) in testrunnode.files.into_iter() {
                                 let mut runs = TestRun {
                                     details: HashMap::new(),
                                     tests: HashMap::new(),
@@ -115,15 +115,15 @@ pub fn parse_results(top: FileTreeNode) -> TestEnvironments {
 
                                                                 // Enter ./log-output/test-environment/test-results/test-run/nix-test-matrix-log/tests/test-name
                                                                 FileTreeNode::Directory(testfilename, mut testnode) => {
-                                                                    if let Some(FileTreeNode::File(_, durationPath)) = testnode.files.remove("duration") {
-                                                                        if let Some(FileTreeNode::File(_, exitcodePath)) = testnode.files.remove("exitcode") {
-                                                                            if let Some(FileTreeNode::File(_, logPath)) = testnode.files.remove("log") {
+                                                                    if let Some(FileTreeNode::File(_, duration_path)) = testnode.files.remove("duration") {
+                                                                        if let Some(FileTreeNode::File(_, exitcode_path)) = testnode.files.remove("exitcode") {
+                                                                            if let Some(FileTreeNode::File(_, log_path)) = testnode.files.remove("log") {
                                                                                 runs.tests.insert(
                                                                                     testfilename,
                                                                                     TestResult {
-                                                                                        duration: read_file_u16(&mut File::open(durationPath).unwrap()),
-                                                                                        exitcode: read_file_u8(&mut File::open(exitcodePath).unwrap()),
-                                                                                        log: File::open(logPath).unwrap(),
+                                                                                        duration: read_file_u16(&mut File::open(duration_path).unwrap()),
+                                                                                        exitcode: read_file_u8(&mut File::open(exitcode_path).unwrap()),
+                                                                                        log: File::open(log_path).unwrap(),
                                                                                     }
                                                                                 );
                                                                             }
@@ -160,4 +160,5 @@ pub fn parse_results(top: FileTreeNode) -> TestEnvironments {
     }
 
     envs
+
 }
