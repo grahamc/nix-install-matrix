@@ -69,9 +69,9 @@ pub fn parse_results(top: FileTreeNode) -> TestEnvironments {
             };
 
             let testresultsdirectory = environmentnode.subtree.directory("test-results").expect("Missing test-results directory");
-            let (detailfiles, directories) = environmentnode.subtree.partition();
-            if directories.len() > 0 {
-                panic!("Expected only one directory named test-results: {:?}", directories);
+            let (detailfiles, extra_directories) = environmentnode.subtree.partition();
+            if extra_directories.len() > 0 {
+                panic!("Expected only one directory named test-results: {:?}", extra_directories);
             }
 
             for file in detailfiles {
