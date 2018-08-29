@@ -1,12 +1,7 @@
-#[macro_use] extern crate lazy_static;
-extern crate regex;
-
-
-
 #[macro_use]
 extern crate structopt;
+extern crate regex;
 
-use regex::Regex;
 use std::io::Write;
 use std::ffi::OsString;
 use std::io::BufRead;
@@ -105,29 +100,203 @@ fn read_file_u8(filep: &mut File) -> u8 {
     ret.trim().parse::<u8>().expect("Failed to parse u8")
 }
 
+impl FileTree {
+    fn new(start: &Path) -> Result<FileTreeNode, io::Error> {
+        let filename = start.file_name()
+            .expect("why can't we find a filename")
+            .to_owned();
+        let filename_string = filename.to_string_lossy().to_string();
 
-fn list_all_files(start: &Path) -> Result<Vec<PathBuf>, io::Error> {
-    let filename = start.file_name()
-        .expect("why can't we find a filename")
-        .to_owned();
-    let filename_string = filename.to_string_lossy().to_string();
-
-    if start.is_file() {
-        return Ok(vec![start.to_path_buf()])
-    } else {
-        fs::read_dir(start)?
-            .fold(Ok(Vec::new()), |mut v, entry| {
-                match v {
-                    Err(e) => Err(e),
-                    Ok(mut v) => {
-                        v.extend(list_all_files(&entry?.path())?);
-                        Ok(v)
-                    }
-                }
-           })
+        if start.is_file() {
+            return Ok(FileTreeNode::File(filename_string, File::open(start)?))
+        } else {
+            return Ok(FileTreeNode::Directory(filename_string, FileTree {
+                files: fs::read_dir(start)?
+                    .collect::<Result<Vec<_>, io::Error>>()?
+                    .into_iter()
+                    .map::<Result<(String, FileTreeNode), io::Error>, _>(|entry| {
+                        Ok((
+                            entry.file_name().to_string_lossy().to_string(),
+                            FileTree::new(&entry.path())?
+                        ))
+                    })
+                    .collect::<Result<HashMap<String, FileTreeNode>, io::Error>>()?,
+            }))
+        }
     }
 }
 
+fn print_tree(node: &FileTreeNode) -> String {
+    let sub = match node {
+        &FileTreeNode::File(ref name, ref _handle) => {
+            format!("-> file:{}", name)
+        }
+
+        &FileTreeNode::Directory(ref name, ref tree) => {
+            let lines = tree.files
+                .iter()
+                .flat_map(|(_name, node)| {
+                    print_tree(node)
+                        .split("\n")
+                        .map(|line| format!("\t{}", line))
+                        .collect::<Vec<String>>()
+                        .into_iter()
+                })
+                .collect::<Vec<String>>()
+                .join("\n");
+            format!("-> dir:{}\n{}",
+                    name,
+                    lines
+            )
+        }
+    };
+
+    sub
+}
+
+fn flatten_tree(top: FileTreeNode) -> HashMap<String, File> {
+    match top {
+        FileTreeNode::File(name, handle) => {
+            let mut map: HashMap<String, File> = HashMap::new();
+            map.insert(name, handle);
+            return map;
+        }
+        FileTreeNode::Directory(name, node) => {
+            let mut map: HashMap<String, File> = HashMap::new();
+
+            for (_, entry) in node.files.into_iter() {
+                for (sname, sentry) in flatten_tree(entry).into_iter() {
+                    map.insert(
+                        format!("{}/{}", name, sname),
+                        sentry
+                    );
+                }
+            }
+
+            map
+        }
+    }
+}
+
+fn parse_results(top: FileTreeNode) -> TestEnvironments {
+    let mut envs = TestEnvironments {
+        environments: vec![],
+    };
+
+    // Traverse down from . in to ./log-output
+    if let FileTreeNode::Directory(_, environmentdirs) = top {
+
+        // Traverse from ./log-output/ in to ./log-output/test-environment
+        for (_, environmentnode) in environmentdirs.files.into_iter() {
+            // Everything inside ./log-output/test-environment must be a directory
+            if let FileTreeNode::Directory(environmentname, environmentdatanode) = environmentnode {
+                let mut env = TestEnvironment {
+                    name: environmentname.to_string(),
+                    details: HashMap::new(),
+                    runs: HashMap::new(),
+                };
+
+                for (_, environmentmetanode) in environmentdatanode.files.into_iter() {
+                    match environmentmetanode {
+                        // Each file inside ./log-output/test-environment/ is metadata
+                        FileTreeNode::File(enviromentmetafilename, mut handle) => {
+                            env.details.insert(enviromentmetafilename, read_file_string(&mut handle));
+                        }
+
+                        // Enter ./log-output/test-environment/test-results/
+                        FileTreeNode::Directory(testresultfilename, testrunnode) => {
+                            if testresultfilename != "test-results" {
+                                panic!("Directory should be named test-results, is named {}", testresultfilename);
+                            }
+
+                            for (testname, testrunnode) in testrunnode.files.into_iter() {
+                                let mut runs = TestRun {
+                                    details: HashMap::new(),
+                                    tests: HashMap::new(),
+                                };
+                                // Each directory in ./log-output/test-environment/test-results/test-run is a specific test run
+                                if let FileTreeNode::Directory(testname, testrunnode) = testrunnode {
+                                    // Enter ./log-output/test-environment/test-results/test-run/test-name/
+                                    for (_, nixtestmatrixlognode) in testrunnode.files.into_iter() {
+                                        // Enter ./log-output/test-environment/test-results/test-run/nix-test-matrix-log/
+                                        if let FileTreeNode::Directory(nixtestmatrixlogfilename, testrunmetadir) = nixtestmatrixlognode {
+                                            if nixtestmatrixlogfilename != "nix-test-matrix-log" {
+                                                panic!("Directory should be named nix-test-matrix-log");
+                                            }
+
+                                            for (_, metanode) in testrunmetadir.files.into_iter() {
+                                                match metanode {
+                                                    // Each file inside ./log-output/test-environment/test-results/test-run/nix-test-matrix-log/ is metadata
+                                                    FileTreeNode::File(enviromentmetafilename, mut handle) => {
+                                                        runs.details.insert(enviromentmetafilename, read_file_string(&mut handle));
+                                                    }
+
+                                                    // Enter ./log-output/test-environment/test-results/test-run/nix-test-matrix-log/tests
+                                                    FileTreeNode::Directory(testsfilename, testsnode) => {
+                                                        if testsfilename != "tests" {
+                                                            panic!("Directory should be named tests");
+                                                        }
+
+                                                        for (_, testnode) in testsnode.files.into_iter() {
+                                                            match testnode {
+                                                                // There should be no files here
+                                                                FileTreeNode::File(_, _) => {
+                                                                    panic!("No file here");
+                                                                }
+
+                                                                // Enter ./log-output/test-environment/test-results/test-run/nix-test-matrix-log/tests/test-name
+                                                                FileTreeNode::Directory(testfilename, mut testnode) => {
+                                                                    if let Some(FileTreeNode::File(_, mut durationF)) = testnode.files.remove("duration") {
+                                                                        if let Some(FileTreeNode::File(_, mut exitcodeF)) = testnode.files.remove("exitcode") {
+                                                                            if let Some(FileTreeNode::File(_, mut logF)) = testnode.files.remove("log") {
+                                                                                runs.tests.insert(
+                                                                                    testfilename,
+                                                                                    TestResult {
+                                                                                        duration: read_file_u16(&mut durationF),
+                                                                                        exitcode: read_file_u8(&mut exitcodeF),
+                                                                                        log: logF
+                                                                                    }
+                                                                                );
+                                                                            }
+                                                                        }
+                                                                    }
+
+                                                                    // Each file inside ./log-output/test-environment/test-run/nix-test-matrix-log/tests/test-name is metadata
+                                                                    // Each file inside ./log-output/test-environment/test-run/nix-test-matrix-log/tests/test-name is metadata
+                                                                    // There should only be one directory, ./log-output/test-environment/test-run/nix-test-matrix-log/tests
+
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            panic!("why is there a file here");
+                                        }
+                                    }
+                                    env.runs.insert(testname, runs);
+                                } else {
+                                    panic!("why is there a file here");
+                                }
+                            }
+
+                        }
+                    }
+                }
+
+
+                envs.environments.push(env);
+            } else {
+                panic!("Unexpected non-dir node");
+            }
+        }
+    } else {
+        panic!("top level is not a directory");
+    }
+
+    envs
+}
 
 #[derive(Debug)]
 struct TestEnvironments {
