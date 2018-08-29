@@ -69,12 +69,12 @@ pub fn parse_results(top: FileTreeNode) -> TestEnvironments {
             };
 
             let testresultsdirectory = environmentnode.subtree.directory("test-results").expect("Missing test-results directory");
-            let (detailfiles, extra_directories) = environmentnode.subtree.partition();
+            let (environment_detail_files, extra_directories) = environmentnode.subtree.partition();
             if extra_directories.len() > 0 {
                 panic!("Expected only one directory named test-results: {:?}", extra_directories);
             }
 
-            for file in detailfiles {
+            for file in environment_detail_files {
                 env.details.insert(file.name, read_file_string(&mut File::open(file.path).unwrap()));
             }
 
