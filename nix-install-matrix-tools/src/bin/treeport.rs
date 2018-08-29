@@ -426,8 +426,6 @@ fn main() {
     let tree = FileTree::new(&opt.input).unwrap();
     let mut out = File::create(&opt.output).unwrap();
 
-
-    print!("{:?}", tree);
     let results = results_table(parse_results(tree));
     write_data(&results, &mut out).unwrap();
 }

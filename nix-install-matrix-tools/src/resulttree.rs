@@ -80,72 +80,64 @@ pub fn parse_results(top: FileTreeNode) -> TestEnvironments {
                 env.details.insert(file.name, read_file_string(&mut File::open(file.path).unwrap()));
             }
 
+            let (files, testscenarios) = testresults.subtree.partition();
+            if files.len() > 0 {
+                panic!("unexpected files: {:?}", files);
+            }
 
-            for (_testname, testrunnode) in testresults.subtree.files {
+            for mut scenariodirectorynode in testscenarios {
                 let mut runs = TestRun {
                     details: HashMap::new(),
                     tests: HashMap::new(),
                 };
-                // Each directory in ./log-output/test-environment/test-results/test-run is a specific test run
-                if let FileTreeNode::Directory(testname, testrunnode) = testrunnode {
-                    // Enter ./log-output/test-environment/test-results/test-run/test-name/
-                    for (_, nixtestmatrixlognode) in testrunnode.files.into_iter() {
-                        // Enter ./log-output/test-environment/test-results/test-run/nix-test-matrix-log/
-                        if let FileTreeNode::Directory(nixtestmatrixlogfilename, testrunmetadir) = nixtestmatrixlognode {
-                            if nixtestmatrixlogfilename != "nix-test-matrix-log" {
-                                panic!("Directory should be named nix-test-matrix-log");
-                            }
 
-                            for (_, metanode) in testrunmetadir.files.into_iter() {
-                                match metanode {
-                                    // Each file inside ./log-output/test-environment/test-results/test-run/nix-test-matrix-log/ is metadata
-                                    FileTreeNode::File(enviromentmetafilename, path) => {
-                                        runs.details.insert(enviromentmetafilename, read_file_string(&mut File::open(path).unwrap()));
-                                    }
-
-                                    // Enter ./log-output/test-environment/test-results/test-run/nix-test-matrix-log/tests
-                                    FileTreeNode::Directory(testsfilename, testsnode) => {
-                                        if testsfilename != "tests" {
-                                            panic!("Directory should be named tests");
-                                        }
-
-                                        for (_, testnode) in testsnode.files.into_iter() {
-                                            match testnode {
-                                                // There should be no files here
-                                                FileTreeNode::File(_, _) => {
-                                                    panic!("No file here");
-                                                }
-
-                                                // Enter ./log-output/test-environment/test-results/test-run/nix-test-matrix-log/tests/test-name
-                                                FileTreeNode::Directory(testfilename, mut testnode) => {
-                                                    if let Some(FileTreeNode::File(_, duration_path)) = testnode.files.remove("duration") {
-                                                        if let Some(FileTreeNode::File(_, exitcode_path)) = testnode.files.remove("exitcode") {
-                                                            if let Some(FileTreeNode::File(_, log_path)) = testnode.files.remove("log") {
-                                                                runs.tests.insert(
-                                                                    testfilename,
-                                                                    TestResult {
-                                                                        duration: read_file_u16(&mut File::open(duration_path).unwrap()),
-                                                                        exitcode: read_file_u8(&mut File::open(exitcode_path).unwrap()),
-                                                                        log: File::open(log_path).unwrap(),
-                                                                    }
-                                                                );
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        } else {
-                            panic!("why is there a file here");
-                        }
-                    }
-                    env.runs.insert(testname, runs);
-                } else {
-                    panic!("why is there a file here");
+                let mut scenarioresultsdir = scenariodirectorynode.subtree.directory("nix-test-matrix-log").unwrap();
+                let (files, directories) = scenariodirectorynode.subtree.partition();
+                if files.len() > 0 {
+                    panic!("No files expected here");
                 }
+                if directories.len() > 0 {
+                    panic!("Only nix-test-matrix-log is expected here");
+                }
+
+                let scenario_test_runs = scenarioresultsdir.subtree.directory("tests").unwrap();
+                let (scenario_details_files, directories) = scenarioresultsdir.subtree.partition();
+                for detail in scenario_details_files {
+                    runs.details.insert(detail.name, read_file_string(&mut File::open(detail.path).unwrap()));
+                }
+                if directories.len() > 0 {
+                    panic!("Only tests is expected here");
+                }
+
+                let (files, scenario_test_result_dirs) = scenario_test_runs.subtree.partition();
+                if files.len() > 0 {
+                    panic!("No files expected here");
+                }
+
+                for mut testrun in scenario_test_result_dirs {
+                    let duration = testrun.subtree.file("duration").unwrap();
+                    let exitcode = testrun.subtree.file("exitcode").unwrap();
+                    let log = testrun.subtree.file("log").unwrap();
+
+                    let (files, directories) = testrun.subtree.partition();
+                    if files.len() > 0 {
+                        panic!("unexpected files");
+                    }
+                    if directories.len() > 0 {
+                        panic!("Only test result files are expected here");
+                    }
+
+                    runs.tests.insert(
+                        testrun.name,
+                        TestResult {
+                            duration: read_file_u16(&mut File::open(duration.path).unwrap()),
+                            exitcode: read_file_u8(&mut File::open(exitcode.path).unwrap()),
+                            log: File::open(log.path).unwrap(),
+                        }
+                    );
+                }
+
+                env.runs.insert(scenariodirectorynode.name, runs);
             }
 
             envs.environments.push(env);

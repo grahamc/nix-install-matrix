@@ -67,6 +67,18 @@ impl FileTree {
         return None;
     }
 
+    /// Removes a file entry from the FileTree and returns it as a
+    /// FileNode
+    pub fn file(&mut self, name: &str) -> Option<FileNode> {
+        if let Some(FileTreeNode::File(name, path)) = self.files.remove(name) {
+            return Some(FileNode {
+                name: name,
+                path: path,
+            });
+        }
+
+       return None;
+    }
 
     /// Split a FileTree's top level files in to a list of files and a
     /// list of directories
