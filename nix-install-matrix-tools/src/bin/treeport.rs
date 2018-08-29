@@ -162,6 +162,13 @@ struct InMemoryTestResult {
 }
 
 #[derive(Debug)]
+struct PartialInMemoryTestResult {
+    duration: Option<u16>,
+    exitcode: Option<u8>,
+    log: Option<String>,
+}
+
+#[derive(Debug)]
 struct ResultTable {
     environments: HashSet<String>, // HashMap<String, File>)>,
     environment_details: HashMap<String, HashMap<String, String>>,
@@ -169,6 +176,17 @@ struct ResultTable {
     testcases: HashSet<String>,
     // environment, scenario, testcase
     results: HashMap<TestResultIdentifier, InMemoryTestResult>
+}
+
+
+#[derive(Debug)]
+struct PartialResultTable {
+    result_table: ResultTable,
+    // environment, scenario, testcase
+    partial_results: HashMap<TestResultIdentifier, PartialInMemoryTestResult>,
+    errors: HashMap<PathBuf, io::Error>,
+    paths_not_utf8: Vec<PathBuf>,
+    ignored_paths: Vec<PathBuf>,
 }
 
 #[derive(Debug,Eq,PartialEq,Hash)]
