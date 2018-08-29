@@ -112,12 +112,12 @@ pub fn parse_results(top: FileTreeNode) -> TestEnvironments {
                     panic!("unexpected files: {:?}", extra_files);
                 }
 
-                for mut testrun in scenario_test_result_dirs {
-                    let duration = testrun.subtree.file("duration").unwrap();
-                    let exitcode = testrun.subtree.file("exitcode").unwrap();
-                    let log = testrun.subtree.file("log").unwrap();
+                for mut test_run_directory in scenario_test_result_dirs {
+                    let duration = test_run_directory.subtree.file("duration").unwrap();
+                    let exitcode = test_run_directory.subtree.file("exitcode").unwrap();
+                    let log = test_run_directory.subtree.file("log").unwrap();
 
-                    let (files, directories) = testrun.subtree.partition();
+                    let (files, directories) = test_run_directory.subtree.partition();
                     if files.len() > 0 {
                         panic!("unexpected files");
                     }
@@ -126,7 +126,7 @@ pub fn parse_results(top: FileTreeNode) -> TestEnvironments {
                     }
 
                     runs.tests.insert(
-                        testrun.name,
+                        test_run_directory.name,
                         TestResult {
                             duration: read_file_u16(&mut File::open(duration.path).unwrap()),
                             exitcode: read_file_u8(&mut File::open(exitcode.path).unwrap()),
