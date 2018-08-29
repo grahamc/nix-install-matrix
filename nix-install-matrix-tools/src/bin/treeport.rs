@@ -1,6 +1,10 @@
 #[macro_use]
 extern crate structopt;
 extern crate regex;
+extern crate nix_install_matrix_tools;
+
+use nix_install_matrix_tools::filetree::FileTreeNode;
+use nix_install_matrix_tools::filetree::FileTree;
 
 use std::io::Write;
 use std::ffi::OsString;
@@ -26,17 +30,6 @@ struct Opt {
     /// Output file
     #[structopt(short = "o", long = "output", parse(from_os_str))]
     output: PathBuf,
-}
-
-#[derive(Debug)]
-struct FileTree {
-    files: HashMap<String, FileTreeNode>
-}
-
-#[derive(Debug)]
-enum FileTreeNode {
-    File(String, PathBuf),
-    Directory(String, FileTree)
 }
 
 fn nl2br(logs: &str) -> String {
@@ -100,59 +93,6 @@ fn read_file_u8(filep: &mut File) -> u8 {
     ret.trim().parse::<u8>().expect("Failed to parse u8")
 }
 
-impl FileTree {
-    fn new(start: &Path) -> Result<FileTreeNode, io::Error> {
-        let filename = start.file_name()
-            .expect("why can't we find a filename")
-            .to_owned();
-        let filename_string = filename.to_string_lossy().to_string();
-
-        if start.is_file() {
-            return Ok(FileTreeNode::File(filename_string, start.to_path_buf()))
-        } else {
-            return Ok(FileTreeNode::Directory(filename_string, FileTree {
-                files: fs::read_dir(start)?
-                    .collect::<Result<Vec<_>, io::Error>>()?
-                    .into_iter()
-                    .map::<Result<(String, FileTreeNode), io::Error>, _>(|entry| {
-                        Ok((
-                            entry.file_name().to_string_lossy().to_string(),
-                            FileTree::new(&entry.path())?
-                        ))
-                    })
-                    .collect::<Result<HashMap<String, FileTreeNode>, io::Error>>()?,
-            }))
-        }
-    }
-}
-
-fn print_tree(node: &FileTreeNode) -> String {
-    let sub = match node {
-        &FileTreeNode::File(ref name, ref _path) => {
-            format!("-> file:{}", name)
-        }
-
-        &FileTreeNode::Directory(ref name, ref tree) => {
-            let lines = tree.files
-                .iter()
-                .flat_map(|(_name, node)| {
-                    print_tree(node)
-                        .split("\n")
-                        .map(|line| format!("\t{}", line))
-                        .collect::<Vec<String>>()
-                        .into_iter()
-                })
-                .collect::<Vec<String>>()
-                .join("\n");
-            format!("-> dir:{}\n{}",
-                    name,
-                    lines
-            )
-        }
-    };
-
-    sub
-}
 
 fn parse_results(top: FileTreeNode) -> TestEnvironments {
     let mut envs = TestEnvironments {
@@ -236,11 +176,6 @@ fn parse_results(top: FileTreeNode) -> TestEnvironments {
                                                                             }
                                                                         }
                                                                     }
-
-                                                                    // Each file inside ./log-output/test-environment/test-run/nix-test-matrix-log/tests/test-name is metadata
-                                                                    // Each file inside ./log-output/test-environment/test-run/nix-test-matrix-log/tests/test-name is metadata
-                                                                    // There should only be one directory, ./log-output/test-environment/test-run/nix-test-matrix-log/tests
-
                                                                 }
                                                             }
                                                         }
