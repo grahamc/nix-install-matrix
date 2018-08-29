@@ -89,17 +89,17 @@ pub fn parse_results(top: FileTreeNode) -> TestEnvironments {
                     tests: HashMap::new(),
                 };
 
-                let mut scenarioresultsdir = scenario_directory_node.subtree.directory("nix-test-matrix-log").unwrap();
-                let (files, directories) = scenario_directory_node.subtree.partition();
-                if files.len() > 0 {
-                    panic!("No files expected here");
+                let mut scenario_matrix_log_directory = scenario_directory_node.subtree.directory("nix-test-matrix-log").unwrap();
+                let (extra_files, extra_directories) = scenario_directory_node.subtree.partition();
+                if extra_files.len() > 0 {
+                    panic!("unexpected files: {:?}", extra_files);
                 }
-                if directories.len() > 0 {
-                    panic!("Only nix-test-matrix-log is expected here");
+                if extra_directories.len() > 0 {
+                    panic!("Expected only one directory, nix-test-matrix-log: {:?}", extra_directories);
                 }
 
-                let scenario_test_runs = scenarioresultsdir.subtree.directory("tests").unwrap();
-                let (scenario_details_files, directories) = scenarioresultsdir.subtree.partition();
+                let scenario_test_runs = scenario_matrix_log_directory.subtree.directory("tests").unwrap();
+                let (scenario_details_files, directories) = scenario_matrix_log_directory.subtree.partition();
                 for detail in scenario_details_files {
                     runs.details.insert(detail.name, read_file_string(&mut File::open(detail.path).unwrap()));
                 }
