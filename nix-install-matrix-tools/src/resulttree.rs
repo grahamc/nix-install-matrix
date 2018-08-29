@@ -61,17 +61,15 @@ pub fn parse_results(top: FileTreeNode) -> TestEnvironments {
         }
 
         // Traverse from ./log-output/ in to ./log-output/test-environment
-        for environmentnode in directories.into_iter() {
-            let environmentname = environmentnode.name;
-            let mut environmentdatanode = environmentnode.subtree;
+        for mut environmentnode in directories.into_iter() {
             let mut env = TestEnvironment {
-                name: environmentname.to_string(),
+                name: environmentnode.name.to_string(),
                 details: HashMap::new(),
                 runs: HashMap::new(),
             };
 
-            let testresults = environmentdatanode.directory("test-results").expect("Missing test-results directory");
-            let (detailfiles, directories) = environmentdatanode.partition();
+            let testresultsdirectory = environmentnode.subtree.directory("test-results").expect("Missing test-results directory");
+            let (detailfiles, directories) = environmentnode.subtree.partition();
             if directories.len() > 0 {
                 panic!("Expected only one directory named test-results: {:?}", directories);
             }
@@ -80,7 +78,7 @@ pub fn parse_results(top: FileTreeNode) -> TestEnvironments {
                 env.details.insert(file.name, read_file_string(&mut File::open(file.path).unwrap()));
             }
 
-            let (files, testscenarios) = testresults.subtree.partition();
+            let (files, testscenarios) = testresultsdirectory.subtree.partition();
             if files.len() > 0 {
                 panic!("unexpected files: {:?}", files);
             }
