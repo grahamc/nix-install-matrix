@@ -99,12 +99,12 @@ pub fn parse_results(top: FileTreeNode) -> TestEnvironments {
                 }
 
                 let scenario_test_runs = scenario_matrix_log_directory.subtree.directory("tests").unwrap();
-                let (scenario_details_files, directories) = scenario_matrix_log_directory.subtree.partition();
+                let (scenario_details_files, extra_directories) = scenario_matrix_log_directory.subtree.partition();
                 for detail in scenario_details_files {
                     runs.details.insert(detail.name, read_file_string(&mut File::open(detail.path).unwrap()));
                 }
-                if directories.len() > 0 {
-                    panic!("Only tests is expected here");
+                if extra_directories.len() > 0 {
+                    panic!("Expected only one directory,  tests: {:?}", extra_directories);
                 }
 
                 let (files, scenario_test_result_dirs) = scenario_test_runs.subtree.partition();
