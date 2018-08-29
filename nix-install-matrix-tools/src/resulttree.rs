@@ -117,12 +117,12 @@ pub fn parse_results(top: FileTreeNode) -> TestEnvironments {
                     let exitcode = test_run_directory.subtree.file("exitcode").unwrap();
                     let log = test_run_directory.subtree.file("log").unwrap();
 
-                    let (files, directories) = test_run_directory.subtree.partition();
-                    if files.len() > 0 {
-                        panic!("unexpected files");
+                    let (extra_files, extra_directories) = test_run_directory.subtree.partition();
+                    if extra_files.len() > 0 {
+                        panic!("unexpected files: {:?}", extra_files);
                     }
-                    if directories.len() > 0 {
-                        panic!("Only test result files are expected here");
+                    if extra_directories.len() > 0 {
+                        panic!("Expected only files named duration, exitcode, and log: {:?}", extra_directories);
                     }
 
                     runs.tests.insert(
