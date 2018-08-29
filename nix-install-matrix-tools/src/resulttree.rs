@@ -107,9 +107,9 @@ pub fn parse_results(top: FileTreeNode) -> TestEnvironments {
                     panic!("Expected only one directory,  tests: {:?}", extra_directories);
                 }
 
-                let (files, scenario_test_result_dirs) = scenario_test_runs.subtree.partition();
-                if files.len() > 0 {
-                    panic!("No files expected here");
+                let (extra_files, scenario_test_result_dirs) = scenario_test_runs.subtree.partition();
+                if extra_files.len() > 0 {
+                    panic!("unexpected files: {:?}", extra_files);
                 }
 
                 for mut testrun in scenario_test_result_dirs {
