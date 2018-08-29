@@ -54,6 +54,20 @@ impl FileTree {
         }
     }
 
+    /// Removes a directory entry from the FileTree and returns it as a
+    /// DirectoryNode
+    pub fn directory(&mut self, name: &str) -> Option<DirectoryNode> {
+        if let Some(FileTreeNode::Directory(name, subtree)) = self.files.remove(name) {
+            return Some(DirectoryNode {
+                name: name,
+                subtree: subtree,
+            });
+        }
+
+        return None;
+    }
+
+
     /// Split a FileTree's top level files in to a list of files and a
     /// list of directories
     pub fn partition(self) -> (Vec<FileNode>, Vec<DirectoryNode>) {
