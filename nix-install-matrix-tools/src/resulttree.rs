@@ -74,8 +74,8 @@ pub fn parse_results(top: FileTreeNode) -> TestEnvironments {
                 panic!("Expected only one directory named test-results: {:?}", extra_directories);
             }
 
-            for file in environment_detail_files {
-                env.details.insert(file.name, read_file_string(&mut File::open(file.path).unwrap()));
+            for environment_detail_file in environment_detail_files {
+                env.details.insert(environment_detail_file.name, read_file_string(&mut File::open(environment_detail_file.path).unwrap()));
             }
 
             let (files, testscenarios) = testresultsdirectory.subtree.partition();
