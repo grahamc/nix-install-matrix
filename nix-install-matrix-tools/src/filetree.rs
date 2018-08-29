@@ -17,6 +17,18 @@ pub enum FileTreeNode {
     Directory(String, FileTree)
 }
 
+#[derive(Debug)]
+pub struct FileNode {
+    pub name: String,
+    pub path: PathBuf,
+}
+
+#[derive(Debug)]
+pub struct DirectoryNode {
+    pub name: String,
+    pub subtree: FileTree,
+}
+
 impl FileTree {
     pub fn new(start: &Path) -> Result<FileTreeNode, io::Error> {
         let filename = start.file_name()
@@ -40,5 +52,31 @@ impl FileTree {
                     .collect::<Result<HashMap<String, FileTreeNode>, io::Error>>()?,
             }))
         }
+    }
+
+    /// Split a FileTree's top level files in to a list of files and a
+    /// list of directories
+    pub fn partition(self) -> (Vec<FileNode>, Vec<DirectoryNode>) {
+        let mut files: Vec<FileNode> = vec![];
+        let mut directories: Vec<DirectoryNode> = vec![];
+
+        for (_, file) in self.files {
+            match file {
+                FileTreeNode::File(name, path) => {
+                    files.push(FileNode {
+                        name: name,
+                        path: path,
+                    });
+                }
+                FileTreeNode::Directory(name, subtree) => {
+                    directories.push(DirectoryNode {
+                        name: name,
+                        subtree: subtree,
+                    });
+                }
+            }
+        }
+
+        return (files, directories);
     }
 }
