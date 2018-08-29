@@ -35,7 +35,7 @@ struct FileTree {
 
 #[derive(Debug)]
 enum FileTreeNode {
-    File(String, File),
+    File(String, PathBuf),
     Directory(String, FileTree)
 }
 
@@ -108,7 +108,7 @@ impl FileTree {
         let filename_string = filename.to_string_lossy().to_string();
 
         if start.is_file() {
-            return Ok(FileTreeNode::File(filename_string, File::open(start)?))
+            return Ok(FileTreeNode::File(filename_string, start.to_path_buf()))
         } else {
             return Ok(FileTreeNode::Directory(filename_string, FileTree {
                 files: fs::read_dir(start)?
@@ -128,7 +128,7 @@ impl FileTree {
 
 fn print_tree(node: &FileTreeNode) -> String {
     let sub = match node {
-        &FileTreeNode::File(ref name, ref _handle) => {
+        &FileTreeNode::File(ref name, ref _path) => {
             format!("-> file:{}", name)
         }
 
@@ -154,30 +154,6 @@ fn print_tree(node: &FileTreeNode) -> String {
     sub
 }
 
-fn flatten_tree(top: FileTreeNode) -> HashMap<String, File> {
-    match top {
-        FileTreeNode::File(name, handle) => {
-            let mut map: HashMap<String, File> = HashMap::new();
-            map.insert(name, handle);
-            return map;
-        }
-        FileTreeNode::Directory(name, node) => {
-            let mut map: HashMap<String, File> = HashMap::new();
-
-            for (_, entry) in node.files.into_iter() {
-                for (sname, sentry) in flatten_tree(entry).into_iter() {
-                    map.insert(
-                        format!("{}/{}", name, sname),
-                        sentry
-                    );
-                }
-            }
-
-            map
-        }
-    }
-}
-
 fn parse_results(top: FileTreeNode) -> TestEnvironments {
     let mut envs = TestEnvironments {
         environments: vec![],
@@ -199,8 +175,8 @@ fn parse_results(top: FileTreeNode) -> TestEnvironments {
                 for (_, environmentmetanode) in environmentdatanode.files.into_iter() {
                     match environmentmetanode {
                         // Each file inside ./log-output/test-environment/ is metadata
-                        FileTreeNode::File(enviromentmetafilename, mut handle) => {
-                            env.details.insert(enviromentmetafilename, read_file_string(&mut handle));
+                        FileTreeNode::File(enviromentmetafilename, path) => {
+                            env.details.insert(enviromentmetafilename, read_file_string(&mut File::open(path).unwrap()));
                         }
 
                         // Enter ./log-output/test-environment/test-results/
@@ -227,8 +203,8 @@ fn parse_results(top: FileTreeNode) -> TestEnvironments {
                                             for (_, metanode) in testrunmetadir.files.into_iter() {
                                                 match metanode {
                                                     // Each file inside ./log-output/test-environment/test-results/test-run/nix-test-matrix-log/ is metadata
-                                                    FileTreeNode::File(enviromentmetafilename, mut handle) => {
-                                                        runs.details.insert(enviromentmetafilename, read_file_string(&mut handle));
+                                                    FileTreeNode::File(enviromentmetafilename, path) => {
+                                                        runs.details.insert(enviromentmetafilename, read_file_string(&mut File::open(path).unwrap()));
                                                     }
 
                                                     // Enter ./log-output/test-environment/test-results/test-run/nix-test-matrix-log/tests
@@ -246,15 +222,15 @@ fn parse_results(top: FileTreeNode) -> TestEnvironments {
 
                                                                 // Enter ./log-output/test-environment/test-results/test-run/nix-test-matrix-log/tests/test-name
                                                                 FileTreeNode::Directory(testfilename, mut testnode) => {
-                                                                    if let Some(FileTreeNode::File(_, mut durationF)) = testnode.files.remove("duration") {
-                                                                        if let Some(FileTreeNode::File(_, mut exitcodeF)) = testnode.files.remove("exitcode") {
-                                                                            if let Some(FileTreeNode::File(_, mut logF)) = testnode.files.remove("log") {
+                                                                    if let Some(FileTreeNode::File(_, durationPath)) = testnode.files.remove("duration") {
+                                                                        if let Some(FileTreeNode::File(_, exitcodePath)) = testnode.files.remove("exitcode") {
+                                                                            if let Some(FileTreeNode::File(_, logPath)) = testnode.files.remove("log") {
                                                                                 runs.tests.insert(
                                                                                     testfilename,
                                                                                     TestResult {
-                                                                                        duration: read_file_u16(&mut durationF),
-                                                                                        exitcode: read_file_u8(&mut exitcodeF),
-                                                                                        log: logF
+                                                                                        duration: read_file_u16(&mut File::open(durationPath).unwrap()),
+                                                                                        exitcode: read_file_u8(&mut File::open(exitcodePath).unwrap()),
+                                                                                        log: File::open(logPath).unwrap(),
                                                                                     }
                                                                                 );
                                                                             }
