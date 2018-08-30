@@ -116,31 +116,34 @@ fn test_run_from_directory(mut scenario_directory_node: DirectoryNode) -> TestRu
     if let Some(mut scenario_matrix_log_directory) = scenario_directory_node.subtree.directory("nix-test-matrix-log") {
         let (extra_files, extra_directories) = scenario_directory_node.subtree.partition();
         if extra_files.len() > 0 {
-            panic!("unexpected files: {:?}", extra_files);
+            println!("unexpected files: {:?}", extra_files);
         }
         if extra_directories.len() > 0 {
-            panic!("Expected only one directory, nix-test-matrix-log: {:?}", extra_directories);
+            println!("Expected only one directory, nix-test-matrix-log: {:?}", extra_directories);
         }
 
-        let scenario_test_runs = scenario_matrix_log_directory.subtree.directory("tests").unwrap();
-        let (scenario_details_files, extra_directories) = scenario_matrix_log_directory.subtree.partition();
-        for detail in scenario_details_files {
-            run.details.insert(detail.name, read_file_string(&mut File::open(detail.path).unwrap()));
-        }
-        if extra_directories.len() > 0 {
-            panic!("Expected only one directory,  tests: {:?}", extra_directories);
-        }
+        if let Some(scenario_test_runs) = scenario_matrix_log_directory.subtree.directory("tests") {
+            let (scenario_details_files, extra_directories) = scenario_matrix_log_directory.subtree.partition();
+            for detail in scenario_details_files {
+                run.details.insert(detail.name, read_file_string(&mut File::open(detail.path).unwrap()));
+            }
+            if extra_directories.len() > 0 {
+                println!("Expected only one directory,  tests: {:?}", extra_directories);
+            }
 
-        let (extra_files, scenario_test_result_dirs) = scenario_test_runs.subtree.partition();
-        if extra_files.len() > 0 {
-            panic!("unexpected files: {:?}", extra_files);
-        }
+            let (extra_files, scenario_test_result_dirs) = scenario_test_runs.subtree.partition();
+            if extra_files.len() > 0 {
+                println!("unexpected files: {:?}", extra_files);
+            }
 
-        for mut test_run_directory in scenario_test_result_dirs {
-            run.tests.insert(
-                test_run_directory.name.clone(),
-                test_result_from_directory(test_run_directory)
-            );
+            for mut test_run_directory in scenario_test_result_dirs {
+                run.tests.insert(
+                    test_run_directory.name.clone(),
+                    test_result_from_directory(test_run_directory)
+                );
+            }
+        } else {
+            println!("Missing tests directory in {:?}", scenario_matrix_log_directory.name);
         }
     } else {
         println!("Missing nix-test-matrix-log directory in {:?}", scenario_directory_node.name);
@@ -156,10 +159,10 @@ fn test_result_from_directory(mut test_run_directory: DirectoryNode) -> TestResu
 
     let (extra_files, extra_directories) = test_run_directory.subtree.partition();
     if extra_files.len() > 0 {
-        panic!("unexpected files: {:?}", extra_files);
+        println!("unexpected files: {:?}", extra_files);
     }
     if extra_directories.len() > 0 {
-        panic!("Expected only files named duration, exitcode, and log: {:?}", extra_directories);
+        println!("Expected only files named duration, exitcode, and log: {:?}", extra_directories);
     }
 
     TestResult {
