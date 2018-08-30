@@ -159,7 +159,8 @@ fn results_table(envs: TestEnvironments) -> ResultTable {
     }
 
     results.environments = environment_names.into_iter().collect();
-    results.environments.sort();
+    results.environments.sort_by(|a, b| a.chars().cmp(b.chars()));
+    results.environments.reverse(); // lol
     results.testcases = testcase_names.into_iter().collect();
     results.testcases.sort();
     results.scenarios = scenario_names.into_iter().collect();
