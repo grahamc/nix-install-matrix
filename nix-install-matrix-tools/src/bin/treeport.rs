@@ -146,7 +146,7 @@ fn results_table(envs: TestEnvironments) -> ResultTable {
                 let value = InMemoryTestResult {
                     exitcode: test.exitcode,
                     duration: test.duration,
-                    log: read_file_string(&mut test.log),
+                    log: read_file_string(&mut File::open(test.log).unwrap()),
                 };
 
                 results.results.insert(id, value);

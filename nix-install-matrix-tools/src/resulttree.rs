@@ -3,6 +3,7 @@ use filetree::FileTreeNode;
 use filetree::DirectoryNode;
 use std::collections::HashMap;
 use std::fs::File;
+use std::path::PathBuf;
 use std::io::Read;
 
 #[derive(Debug)]
@@ -27,7 +28,7 @@ pub struct TestRun {
 pub struct TestResult {
     pub duration: u16,
     pub exitcode: u8,
-    pub log: File
+    pub log: PathBuf
 }
 
 pub fn read_file_string(filep: &mut File) -> String {
@@ -168,6 +169,6 @@ fn test_result_from_directory(mut test_run_directory: DirectoryNode) -> TestResu
     TestResult {
         duration: read_file_u16(&mut File::open(duration.path).unwrap()),
         exitcode: read_file_u8(&mut File::open(exitcode.path).unwrap()),
-        log: File::open(log.path).unwrap(),
+        log: log.path,
     }
 }
