@@ -1,5 +1,7 @@
 {
-  installScripts = [
+  installScripts = let
+    installUrl = "https://nixos.org/nix/install";
+  in [
     {
       name = "install-default";
       script = ''
@@ -7,7 +9,7 @@
 
         set -eux
 
-        curl https://nixos.org/nix/install | sh
+        curl "${installUrl}" | sh
       '';
     }
 
@@ -18,7 +20,7 @@
 
         set -eux
 
-        curl https://nixos.org/nix/install | sh -s -- --no-daemon
+        curl "${installUrl}" | sh -s -- --no-daemon
       '';
     }
 
@@ -29,7 +31,7 @@
 
         set -eux
 
-        curl https://nixos.org/nix/install | sh -s -- --daemon
+        curl "${installUrl}" | sh -s -- --daemon
       '';
     }
   ];
