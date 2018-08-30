@@ -110,7 +110,7 @@ fn test_run_from_directory(mut scenario_directory_node: DirectoryNode) -> TestRu
         tests: HashMap::new(),
     };
 
-    let mut scenario_matrix_log_directory = scenario_directory_node.subtree.directory("nix-test-matrix-log").unwrap();
+    let mut scenario_matrix_log_directory = scenario_directory_node.subtree.directory("nix-test-matrix-log").expect(&format!("Missing nix-test-matrix-log directory in {:?}", environment_node.name));
     let (extra_files, extra_directories) = scenario_directory_node.subtree.partition();
     if extra_files.len() > 0 {
         panic!("unexpected files: {:?}", extra_files);
