@@ -61,8 +61,9 @@ fn sample_log_end(logs: &str) -> String {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 struct InMemoryTestResult {
+    environment: String,
     duration: u16,
     exitcode: u8,
     log: String
@@ -86,6 +87,7 @@ struct ResultTable {
 
     install_methods: Vec<String>,
     images: Vec<String>,
+    result_by_install_methods_images: HashMap<DeepTestResultIdentifier, InMemoryTestResult>,
 }
 
 
@@ -106,6 +108,16 @@ struct TestResultIdentifier {
     testcase: String,
 }
 
+
+#[derive(Debug,Eq,PartialEq,Hash)]
+struct DeepTestResultIdentifier {
+    install_method: String,
+    image: String,
+    scenario: String,
+    testcase: String,
+}
+
+
 impl ResultTable {
     fn get_result(&self, environment: &str, scenario: &str, testcase: &str) -> Option<&InMemoryTestResult> {
         let id = TestResultIdentifier {
@@ -119,6 +131,18 @@ impl ResultTable {
     fn get_environment_details(&self, environment: &str) -> Option<&HashMap<String, String>> {
         self.environment_details.get(&environment.to_string())
     }
+
+
+    fn get_test_result(&self, install_method: &str, image: &str, scenario: &str, testcase: &str) -> Option<&InMemoryTestResult> {
+        let id = DeepTestResultIdentifier {
+            install_method: install_method.to_string(),
+            image: image.to_string(),
+            scenario: scenario.to_string(),
+            testcase: testcase.to_string(),
+        };
+
+        self.result_by_install_methods_images.get(&id)
+    }
 }
 
 fn results_table(envs: TestEnvironments) -> ResultTable {
@@ -128,6 +152,7 @@ fn results_table(envs: TestEnvironments) -> ResultTable {
         environments: Vec::new(),
         environment_details: HashMap::new(),
         results: HashMap::new(),
+        result_by_install_methods_images: HashMap::new(),
 
         install_methods: Vec::new(),
         images: Vec::new(),
@@ -143,15 +168,18 @@ fn results_table(envs: TestEnvironments) -> ResultTable {
     for environment in envs.environments.into_iter() {
         environment_names.insert(environment.name.clone());
 
-        if let Some(install_method) = environment.details.get("install_method") {
+        let mut found_install_method: Option<String> = None;
+        if let Some(install_method) = environment.details.get("install-method") {
             install_method_names.insert(install_method.clone());
+            found_install_method = Some(install_method.clone());
         } else {
             println!("NO INSTALL METHOD FOR {}", environment.name);
         }
 
-
-        if let Some(image_name) = environment.details.get("image_name") {
+        let mut found_image_name: Option<String> = None;
+        if let Some(image_name) = environment.details.get("image-name") {
             image_names.insert(image_name.clone());
+            found_image_name = Some(image_name.clone());
         } else {
             println!("NO IMAGE NAME FOR {}", environment.name);
         }
@@ -166,16 +194,29 @@ fn results_table(envs: TestEnvironments) -> ResultTable {
                 let id = TestResultIdentifier {
                     environment: environment.name.clone(),
                     scenario: scenario.clone(),
-                    testcase: case,
+                    testcase: case.clone(),
                 };
 
                 let value = InMemoryTestResult {
+                    environment: environment.name.clone(),
                     exitcode: test.exitcode,
                     duration: test.duration,
                     log: read_file_string(&mut File::open(test.log).unwrap()),
                 };
 
-                results.results.insert(id, value);
+                results.results.insert(id, value.clone());
+                if let Some(ref install_method) = found_install_method {
+                    if let Some(ref image_name) = found_image_name {
+                        let id = DeepTestResultIdentifier {
+                            install_method: install_method.clone(),
+                            image: image_name.clone(),
+                            scenario: scenario.clone(),
+                            testcase: case,
+                        };
+
+                        results.result_by_install_methods_images.insert(id, value);
+                    }
+                }
             }
         }
     }
@@ -197,6 +238,113 @@ fn results_table(envs: TestEnvironments) -> ResultTable {
 }
 
 fn write_data(table: &ResultTable, out: &mut File) -> Result<(), io::Error> {
+    let install_method_headers = table.install_methods.iter()
+        .map(|install_method| {
+            format!(r##"
+<th colspan="{scenario_count}">{install_method}</th>
+"##,
+                    scenario_count = table.scenarios.len(),
+                    install_method=install_method,
+            )
+        })
+        .collect::<Vec<String>>()
+        .join("\n");
+    let scenario_columns_repeated = table.install_methods.iter()
+        .flat_map(|_install_method| {
+            table.scenarios.iter().map(|scenario| {
+                format!(r##"
+<th><div>{scenario}</div></th>
+"##,
+                        scenario=scenario
+                )
+            }).collect::<Vec<String>>()
+        })
+        .collect::<Vec<String>>()
+        .join("\n");
+
+    let per_image_rows = table.images.iter()
+        .map(|image| {
+
+            let test_result_rows = table.testcases.iter()
+                .map(|testcase| {
+
+                    let test_results_per_install_method: String = table.install_methods.iter()
+                        .flat_map(|install_method| {
+                            table.scenarios.iter()
+                                .map(|scenario| {
+
+                                    let result = table.get_test_result(install_method, image, scenario, testcase);
+
+                                    let status_class: &str;
+                                    let symbol: &str;
+                                    let target: &str;
+
+                                    if let Some(res) = result {
+                                        target = &res.environment;
+                                        if res.exitcode == 0 {
+                                            status_class = "test-result-pass";
+                                            symbol = "P";
+                                        } else {
+                                            status_class = "test-result-fail";
+                                            symbol = "F";
+                                        }
+                                    } else {
+                                        status_class = "";
+                                        symbol = "S";
+                                        target = "";
+                                    }
+
+
+                                    format!(r##"<td class='test-square test-result {status_class}'><a href="#{target}"><span>{symbol}</span></a></td>"##,
+                                            status_class=status_class,
+                                            target=target,
+                                            symbol=symbol,
+                                    )
+                                })
+                                .collect::<Vec<String>>()
+                        })
+                        .collect::<Vec<String>>()
+                        .join("\n");
+
+                    format!(r##"
+<tr>
+<th>{testcase}</th>
+{test_results_per_install_method}
+</tr>
+"##,
+                            testcase=testcase,
+                            test_results_per_install_method=test_results_per_install_method,
+                    )
+                })
+                .collect::<Vec<String>>()
+                .join("\n");
+
+            format!(r##"
+<tr>
+<th rowspan="{test_count}" colspan="1">{image}</th>
+</tr>
+{test_result_rows}
+"##,
+                    image=image,
+                    test_count=table.testcases.len() + 1,
+                    test_result_rows=test_result_rows
+            )
+        })
+        .collect::<Vec<String>>()
+        .join("\n");
+
+    let summary_table: String = format!(r##"
+<table class="summary">
+  <tr><td>&nbsp;</td><td>&nbsp;</td>{install_method_headers}</tr>
+  <tr class="summary-scenarios"><td>&nbsp;</td><td>&nbsp;</td>{scenario_columns_repeated}</tr>
+{per_image_rows}
+</table>
+"##,
+                                        install_method_headers=install_method_headers,
+                                        per_image_rows=per_image_rows,
+                                        scenario_columns_repeated=scenario_columns_repeated,
+    );
+
     let env_results: Vec<String> = table.environments
         .iter()
         .map(|environment| format!(r#"
@@ -214,7 +362,6 @@ fn write_data(table: &ResultTable, out: &mut File) -> Result<(), io::Error> {
 </thead><tbody>
 {test_result_rows}
 </tbody>
-
 "#,
                                    environment=environment,
                                    environment_details=table.get_environment_details(environment).unwrap()
@@ -320,6 +467,10 @@ tr.environment-row > td, tr.environment-row > th {{
     text-align: center;
 }}
 
+tr.summary-scenarios > th > div {{
+  transform: rotate(-45deg);
+}}
+
 .testcase-name {{
     font-style: italic;
     text-align: right;
@@ -362,6 +513,13 @@ tr p {{
   margin: 2px;
 }}
 
+tr.summary-scenarios > th {{
+    width: 3em;
+    max-width: 3em;
+    min-width: 3em;
+    vertical-align: bottom;
+}}
+
 .test-result.test-result-fail {{
     background-color: #ffe4e4;
 }}
@@ -393,7 +551,43 @@ pre {{
   overflow: auto;
 }}
 
+
+td.test-square {{
+  height: 3em;
+  max-height: 3em;
+  min-height: 3em;
+
+  width: 3em;
+  max-width: 3em;
+  min-width: 3em;
+  padding: 0;
+  text-align: center;
+  vertical-align: middle;
+}}
+
+.summary {{
+width: auto;
+}}
+
+.summary a {{
+    display: block;
+    height: 100%;
+    width: 100%;
+    position: relative;
+}}
+
+.summary a > span {{
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 0;
+  right: 0;
+}}
+
 </style>
+
+{summary_table}
+
 <ul>
 {environment_index}
 </ul>
@@ -405,6 +599,7 @@ pre {{
 <h1>all details</h1>
 {all_details}
 "#,
+                      summary_table=summary_table,
                       environment_results=env_results.join("\n"),
                       logs=table.results
                       .iter()
