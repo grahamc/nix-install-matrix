@@ -1,6 +1,11 @@
 {
   installScripts = let
-    installUrl = "https://nixos.org/nix/install";
+    installUrls = {
+      pre = "https://nixos.org/releases/nix/nix-2.1pre6385_d16ff76c/install";
+      stable = "https://nixos.org/nix/install";
+      "2.0.4" = "https://nixos.org/releases/nix/nix-2.0.4/install";
+    };
+    installUrl = installUrls.pre;
   in [
     {
       name = "install-default";
@@ -180,21 +185,6 @@
 
     "ubuntu-17-10" = {
       image = "ubuntu/artful64";
-      preInstall = ''
-        apt-get update
-        apt-get install -y curl
-      '';
-    };
-
-    "ubuntu-17-04" = {
-      image = "ubuntu/zesty64";
-      preInstall = ''
-        apt-get update
-        apt-get install -y curl
-      '';
-    };
-    "ubuntu-16-10" = {
-      image = "ubuntu/yakkety64";
       preInstall = ''
         apt-get update
         apt-get install -y curl
