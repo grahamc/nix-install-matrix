@@ -77,10 +77,10 @@ struct PartialInMemoryTestResult {
 
 #[derive(Debug)]
 struct ResultTable {
-    environments: HashSet<String>, // HashMap<String, File>)>,
+    environments: Vec<String>, // HashMap<String, File>)>,
     environment_details: HashMap<String, HashMap<String, String>>,
-    scenarios: HashSet<String>,
-    testcases: HashSet<String>,
+    scenarios: Vec<String>,
+    testcases: Vec<String>,
     // environment, scenario, testcase
     results: HashMap<TestResultIdentifier, InMemoryTestResult>
 }
@@ -120,23 +120,27 @@ impl ResultTable {
 
 fn results_table(envs: TestEnvironments) -> ResultTable {
     let mut results = ResultTable {
-        testcases: HashSet::new(),
-        scenarios: HashSet::new(),
-        environments: HashSet::new(),
+        testcases: Vec::new(),
+        scenarios: Vec::new(),
+        environments: Vec::new(),
         environment_details: HashMap::new(),
-        results: HashMap::new()
+        results: HashMap::new(),
     };
 
+    let mut testcase_names: HashSet<String> = HashSet::new();
+    let mut scenario_names: HashSet<String> = HashSet::new();
+    let mut environment_names: HashSet<String> = HashSet::new();
+
     for environment in envs.environments.into_iter() {
-        results.environments.insert(environment.name.clone());
+        environment_names.insert(environment.name.clone());
 
         results.environment_details.insert(environment.name.clone(), environment.details);
 
         for (scenario, run) in environment.runs {
-            results.scenarios.insert(scenario.clone());
+            scenario_names.insert(scenario.clone());
 
             for (case, mut test) in run.tests.into_iter() {
-                results.testcases.insert(case.clone());
+                testcase_names.insert(case.clone());
                 let id = TestResultIdentifier {
                     environment: environment.name.clone(),
                     scenario: scenario.clone(),
@@ -153,6 +157,13 @@ fn results_table(envs: TestEnvironments) -> ResultTable {
             }
         }
     }
+
+    results.environments = environment_names.into_iter().collect();
+    results.environments.sort();
+    results.testcases = testcase_names.into_iter().collect();
+    results.testcases.sort();
+    results.scenarios = scenario_names.into_iter().collect();
+    results.scenarios.sort();
 
     results
 }
