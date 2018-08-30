@@ -56,7 +56,9 @@
 
     "arch" = {
       image = "generic/arch";
-      preInstall = "";
+      preInstall = ''
+        packman -S --no-confirm rsync
+      '';
     };
 
     "alpine-3-8" = {
