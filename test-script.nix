@@ -122,6 +122,18 @@ let
     (name: _: if imageNameFilter == null then true
       else name == imageNameFilter) srcs.images);
 
+mkImageFetchScript = imagename:
+  shellcheckedScript "fetch-image"
+    ''
+      #!/bin/sh
+
+      set -euxo pipefail
+
+      if ! vagrant box list | grep -q "${imagename}"; then
+        vagrant box add "${imagename}"
+      fi
+'';
+
 in shellcheckedScript "run-tests.sh"
 ''
   #!/bin/sh
@@ -139,7 +151,7 @@ in shellcheckedScript "run-tests.sh"
   echo "Pre-fetching images"
   cat <<EOF | ${pkgs.parallel}/bin/parallel -j 4 :::: -
   ${pkgs.lib.concatStringsSep "\n"
-  (builtins.map (image: "vagrant box add ${image.image}")
+  (builtins.map (image: mkImageFetchScript image.image)
     (builtins.attrValues filteredImages)
     )}
   EOF
