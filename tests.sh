@@ -4,12 +4,8 @@ export PS4=' ''${BASH_SOURCE}::''${FUNCNAME[0]}::$LINENO '
 set -u
 set -o pipefail
 
-testexitok() (
-    /bin/bash -c "exit 0"
-)
-
-testexitfail() (
-    /bin/bash -c "exit 1"
+testnixinfo() (
+    nix-shell -p nix-info --run "nix-info -m"
 )
 
 testshell() (
@@ -59,8 +55,7 @@ main() {
     uname -a > "$TESTDIR/uname"
     nix-shell -p nix-info --run "nix-info -m" > "$TESTDIR/nix-info"
     (
-        runtest testexitok
-        runtest testexitfail
+        runtest testnixinfo
         runtest testshell
         runtest testnixenv
         runtest testnixchannel
