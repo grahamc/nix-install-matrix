@@ -52,8 +52,6 @@ main() {
     rm -rf "$TESTDIR"
     mkdir "$TESTDIR"
 
-    uname -a > "$TESTDIR/uname"
-    nix-shell -p nix-info --run "nix-info -m" > "$TESTDIR/nix-info"
     (
         runtest testnixinfo
         runtest testshell
