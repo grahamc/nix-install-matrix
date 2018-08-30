@@ -1,3 +1,26 @@
+Most software testing is prescriptive: a suite of tests are written
+and executed in specific scenarios to ensure they all pass. A
+prescriptive test failure indicates a serious problem which needs to
+be addressed.
+
+The Nix Install Matrix test suite is _descriptive_, *not*
+prescriptive.
+
+The goal of the test matrix is to _describe_ the current state of the
+Nix installer, and environments it works in, and environments it
+doesn't work in. If the descriptive tests fail, it is not, by default
+a problem -- just the reality of the current software.
+
+Over time we make work to improve the installer to allow more of the
+tests to pass, either on specific distributions, specific
+configurations, or in cross-cutting ways.
+
+The goal of the install matrix is to help evaluate the changes to the
+installation procedure to determine if the change has improved or
+degraded the installation process.
+
+---
+
 # Nix Test Matrix
 
 # Background
