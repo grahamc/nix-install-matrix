@@ -208,28 +208,6 @@
         apt-get install -y curl
       '';
     };
-    "ubuntu-15-10" = {
-      image = "ubuntu/wily64";
-      preInstall = ''
-        apt-get update
-        apt-get install -y curl
-      '';
-    };
-
-    "ubuntu-15-04" = {
-      image = "ubuntu/vivid64";
-      preInstall = ''
-        apt-get update
-        apt-get install -y curl
-      '';
-    };
-    "ubuntu-14-10" = {
-      image = "ubuntu/utopic64";
-      preInstall = ''
-        apt-get update
-        apt-get install -y curl
-      '';
-    };
 
     "ubuntu-14-04" = {
       image = "ubuntu/trusty64";
