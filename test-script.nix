@@ -21,6 +21,8 @@ let
       config.vm.provision "shell", inline: <<-SHELL
     ${details.preInstall}
       SHELL
+      config.vm.synced_folder ".", "/vagrant", disabled: true
+      config.vm.box_check_update = false
       config.vm.provider "virtualbox" do |vb|
         vb.memory = "2048"
 
@@ -132,9 +134,11 @@ in shellcheckedScript "run-tests.sh"
 
   set +e
 
+  cat <<EOF | ${pkgs.parallel}/bin/parallel "$@" :::: -
   ${pkgs.lib.concatStringsSep "\n"
   (builtins.map (case:
     let cmd = mkTestScript case.installMethod case.imageName case.imageConfig;
     in "${cmd} \"$destdir/${case.installMethod.name}-${case.imageName}\"") casesToRun
-  )}
+    )}
+  EOF
 ''
