@@ -79,7 +79,7 @@ fn test_environment_from_directory(mut environment_node: DirectoryNode) -> TestE
         runs: HashMap::new(),
     };
 
-    let environment_scenario_directory = environment_node.subtree.directory("test-results").expect("Missing test-results directory in {:?}", environment_node.name);
+    let environment_scenario_directory = environment_node.subtree.directory("test-results").expect(format!("Missing test-results directory in {:?}", environment_node.name));
     let (environment_detail_files, extra_directories) = environment_node.subtree.partition();
     if extra_directories.len() > 0 {
         panic!("Expected only one directory named test-results: {:?}", extra_directories);
