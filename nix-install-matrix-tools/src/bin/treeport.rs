@@ -82,7 +82,10 @@ struct ResultTable {
     scenarios: Vec<String>,
     testcases: Vec<String>,
     // environment, scenario, testcase
-    results: HashMap<TestResultIdentifier, InMemoryTestResult>
+    results: HashMap<TestResultIdentifier, InMemoryTestResult>,
+
+    install_methods: Vec<String>,
+    images: Vec<String>,
 }
 
 
@@ -125,14 +128,33 @@ fn results_table(envs: TestEnvironments) -> ResultTable {
         environments: Vec::new(),
         environment_details: HashMap::new(),
         results: HashMap::new(),
+
+        install_methods: Vec::new(),
+        images: Vec::new(),
     };
 
     let mut testcase_names: HashSet<String> = HashSet::new();
     let mut scenario_names: HashSet<String> = HashSet::new();
     let mut environment_names: HashSet<String> = HashSet::new();
 
+    let mut install_method_names: HashSet<String> = HashSet::new();
+    let mut image_names: HashSet<String> = HashSet::new();
+
     for environment in envs.environments.into_iter() {
         environment_names.insert(environment.name.clone());
+
+        if let Some(install_method) = environment.details.get("install_method") {
+            install_method_names.insert(install_method.clone());
+        } else {
+            println!("NO INSTALL METHOD FOR {}", environment.name);
+        }
+
+
+        if let Some(image_name) = environment.details.get("image_name") {
+            image_names.insert(image_name.clone());
+        } else {
+            println!("NO IMAGE NAME FOR {}", environment.name);
+        }
 
         results.environment_details.insert(environment.name.clone(), environment.details);
 
@@ -165,6 +187,11 @@ fn results_table(envs: TestEnvironments) -> ResultTable {
     results.testcases.sort();
     results.scenarios = scenario_names.into_iter().collect();
     results.scenarios.sort();
+
+    results.images = image_names.into_iter().collect();
+    results.images.sort();
+    results.install_methods = install_method_names.into_iter().collect();
+    results.install_methods.sort();
 
     results
 }
