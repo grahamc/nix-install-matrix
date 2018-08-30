@@ -116,9 +116,11 @@ let
     (builtins.filter
       (installer: if installMethodFilter == null then true
         else installer.name == installMethodFilter) srcs.installScripts)
-      (pkgs.lib.filterAttrs
-        (name: _: if imageNameFilter == null then true
-          else name == imageNameFilter) srcs.images);
+      filteredImages;
+
+  filteredImages = (pkgs.lib.filterAttrs
+    (name: _: if imageNameFilter == null then true
+      else name == imageNameFilter) srcs.images);
 
 in shellcheckedScript "run-tests.sh"
 ''
@@ -133,6 +135,16 @@ in shellcheckedScript "run-tests.sh"
   shift
 
   set +e
+
+  echo "Pre-fetching images"
+  cat <<EOF | ${pkgs.parallel}/bin/parallel -j 4 :::: -
+  ${pkgs.lib.concatStringsSep "\n"
+  (builtins.map (image: "vagrant box add ${image.image}")
+    (builtins.attrValues filteredImages)
+    )}
+  EOF
+
+  echo "Running tests"
 
   cat <<EOF | ${pkgs.parallel}/bin/parallel "$@" :::: -
   ${pkgs.lib.concatStringsSep "\n"
