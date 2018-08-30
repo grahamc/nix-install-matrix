@@ -122,13 +122,6 @@
       '';
     };
 
-    "freebsd-11" = {
-      image = "generic/freebsd11";
-      preInstall = ''
-        pkg install curl
-      '';
-    };
-
     "centos-7" = {
       image = "centos/7";
       preInstall = ''
