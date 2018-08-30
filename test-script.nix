@@ -130,7 +130,7 @@ mkImageFetchScript = imagename:
       set -euxo pipefail
 
       if ! vagrant box list | grep -q "${imagename}"; then
-        vagrant box add "${imagename}"
+        vagrant box add "${imagename}" --provider=virtualbox
       fi
 '';
 
