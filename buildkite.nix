@@ -109,35 +109,57 @@ let
           vagrant box add "${imagename}" --provider=virtualbox
         fi
       '';
-in shellcheckedScript "run-tests.sh"
-''
-  #!/bin/sh
 
-  set -eux
+  rawjson = pkgs.writeText "buildkite.json"
+(builtins.toJSON
+{ steps = (
 
-  PATH="${pkgs.coreutils}/bin/:$PATH"
-
-  destdir=$(realpath "$1")
-  mkdir -p "$destdir"
-  shift
-
-  set +e
-
-  echo "Pre-fetching images"
-  cat <<EOF | ${pkgs.parallel}/bin/parallel -j 4 :::: -
-  ${pkgs.lib.concatStringsSep "\n"
-  (builtins.map (image: mkImageFetchScript image.image)
-    (builtins.attrValues filteredImages)
-    )}
-  EOF
-
-  echo "Running tests"
-
-  cat <<EOF | ${pkgs.parallel}/bin/parallel "$@" :::: -
-  ${pkgs.lib.concatStringsSep "\n"
   (builtins.map (case:
-    let cmd = mkTestScript case.installMethod case.imageName case.imageConfig;
-    in "${cmd} \"$destdir/${case.installMethod.name}-${case.imageName}\"") casesToRun
-    )}
-  EOF
+  let cmd = mkTestScript case.installMethod case.imageName case.imageConfig;
+  in {
+    label = "${case.imageName}: ${case.installMethod.name}";
+    command = [
+      "rm -rf ./output"
+      "mkdir ./output"
+      "nix-build ./test-script.nix --argstr imageNameFilter '${case.imageName}' --argstr installMethodFilter '${case.installMethod.name}'"
+      "./result ./output/${case.installMethod.name}-${case.imageName}"
+      "tar -C output -czf ${case.installMethod.name}-${case.imageName}.tar.gz ${case.installMethod.name}-${case.imageName}"
+    ];
+    artifact_paths = [
+      "output/${case.installMethod.name}-${case.imageName}.tar.gz"
+    ];
+  }) casesToRun
+  )
+  ++ [
+    {
+      wait = "~";
+      continue_on_failure = true;
+    }
+    {
+      label = "report";
+      command =
+        [
+          "rm -rf output"
+          "mkdir output"
+        ]
+        ++ (builtins.map (case:
+          "buildkite-agent artifact download output/${case.installMethod.name}-${case.imageName}.tar.gz output/${case.installMethod.name}-${case.imageName}.tar.gz"
+        ) casesToRun)
+        ++ (builtins.map (case:
+          "tar -C output -xf ${case.installMethod.name}-${case.imageName}.tar.gz output/${case.installMethod.name}-${case.imageName}.tar.gz"
+        )  casesToRun)
+        ++ [
+          "nix-build ./nix-install-matrix-tools/"
+          "./result/bin/treeport --input ./output --output ./report.html"
+        ];
+        artifact_paths = [
+          "output/report.html"
+        ];
+    }
+  ]);
+});
+
+in pkgs.runCommand "buildkite.pretty.json" { buildInputs = [ pkgs.jq ]; }
+''
+  jq .  ${rawjson} > $out
 ''
