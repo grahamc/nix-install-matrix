@@ -119,6 +119,7 @@ let
   in {
     label = "${case.imageName}: ${case.installMethod.name}";
     command = [
+      "echo $HOME"
       "rm -rf ./output"
       "mkdir ./output"
       "nix-build ./test-script.nix --argstr imageNameFilter '${case.imageName}' --argstr installMethodFilter '${case.installMethod.name}'"
