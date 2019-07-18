@@ -42,6 +42,7 @@
   ];
 
   images = {
+    /*
     "macos-sierra" = {
       # Sketchy :)
       image = "jhcook/macos-sierra";
@@ -185,7 +186,7 @@
         apt-get install -y curl
       '';
     };
-
+*/
     "ubuntu-12-04" = {
       image = "ubuntu/precise64";
       preInstall = ''
