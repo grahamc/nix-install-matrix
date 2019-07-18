@@ -32,6 +32,8 @@ let
   mkTestScript = installScript: name: details: shellcheckedScript "run-${installScript.name}-${name}.sh" ''
     #!/bin/sh
 
+    echo "--- Test script for ${installScript.name}-${name}"
+
     PATH=${pkgs.vagrant}/bin/:${pkgs.coreutils}/bin/:$PATH
 
     printf "\\n\\n\\n\\n\\n"
@@ -101,6 +103,9 @@ let
     shellcheckedScript "fetch-image"
       ''
         #!/bin/sh
+
+        echo "--- Fetching ${imagename}"
+
 
         set -euxo pipefail
 
