@@ -19,6 +19,7 @@ let
       config.vm.synced_folder ".", "/vagrant", disabled: true
       config.vm.box_check_update = false
       config.vm.provider "virtualbox" do |vb|
+        vb.gui = false
         vb.memory = "2048"
 
         # for macos:
