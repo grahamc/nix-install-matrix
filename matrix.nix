@@ -42,7 +42,6 @@
   ];
 
   images = {
-    /*
     "macos-sierra" = {
       # Sketchy :)
       image = "jhcook/macos-sierra";
@@ -178,7 +177,7 @@
         apt-get install -y curl
       '';
     };
-*/
+
     "ubuntu-14-04" = {
       image = "ubuntu/trusty64";
       preInstall = ''
