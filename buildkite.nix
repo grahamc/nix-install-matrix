@@ -151,7 +151,7 @@ let
           "echo '--- Extracting artifacts'"
         ]
         ++ (builtins.map (case:
-          "cd output && tar -C output -xf ${case.installMethod.name}-${case.imageName}.tar.gz || true"
+          "(cd output && tar -C output -xf ${case.installMethod.name}-${case.imageName}.tar.gz) || true"
         )  casesToRun)
         ++ [
           "echo '--- Building report tool'"
