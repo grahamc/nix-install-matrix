@@ -129,6 +129,8 @@ mkImageFetchScript = imagename:
 
       set -euxo pipefail
 
+      PATH=${pkgs.vagrant}/bin/:${pkgs.coreutils}/bin/:${pkgs.gnugrep}/bin/:${pkgs.curl}/bin/
+
       if ! vagrant box list | grep -q "${imagename}"; then
         vagrant box add "${imagename}" --provider=virtualbox
       fi
