@@ -144,10 +144,10 @@ let
           "mkdir output"
         ]
         ++ (builtins.map (case:
-          "buildkite-agent artifact download ${case.installMethod.name}-${case.imageName}.tar.gz output/${case.installMethod.name}-${case.imageName}.tar.gz"
+          "buildkite-agent artifact download ${case.installMethod.name}-${case.imageName}.tar.gz output/ || true"
         ) casesToRun)
         ++ (builtins.map (case:
-          "tar -C output -xf ${case.installMethod.name}-${case.imageName}.tar.gz output/${case.installMethod.name}-${case.imageName}.tar.gz"
+          "tar -C output -xf ${case.installMethod.name}-${case.imageName}.tar.gz output/${case.installMethod.name}-${case.imageName}.tar.gz || true"
         )  casesToRun)
         ++ [
           "nix-build ./nix-install-matrix-tools/"
