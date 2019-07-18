@@ -123,7 +123,7 @@ let
       "rm -rf ./output"
       "mkdir ./output"
       "nix-build ./test-script.nix --argstr imageNameFilter '${case.imageName}' --argstr installMethodFilter '${case.installMethod.name}'"
-      "./result ./output/${case.installMethod.name}-${case.imageName}"
+      "./result ./output"
       "tar -C output -czf ${case.installMethod.name}-${case.imageName}.tar.gz ${case.installMethod.name}-${case.imageName}"
     ];
     artifact_paths = [
