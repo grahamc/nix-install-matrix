@@ -32,7 +32,7 @@ let
   mkTestScript = installScript: name: details: shellcheckedScript "run-${installScript.name}-${name}.sh" ''
     #!/bin/sh
 
-    PATH=${pkgs.vagrant}/bin/:${pkgs.coreutils}/bin/:${pkgs.virtualbox}/bin/
+    PATH=${pkgs.vagrant}/bin/:${pkgs.coreutils}/bin/:$PATH:${pkgs.virtualbox}/bin/
 
     printf "\\n\\n\\n\\n\\n"
     echo "Test script for ${installScript.name}-${name}"
@@ -66,7 +66,7 @@ let
     echo "${installScript.name}" > ./log-results/install-method
 
     (
-      vagrant up
+      vagrant up --provider=virtualbox
 
       vagrant ssh -- tee install < ${shellcheckedScript installScript.name installScript.script}
       vagrant ssh -- chmod +x install
@@ -104,7 +104,7 @@ let
 
         set -euxo pipefail
 
-        PATH=${pkgs.vagrant}/bin/:${pkgs.coreutils}/bin/:${pkgs.gnugrep}/bin/:${pkgs.curl}/bin/:${pkgs.virtualbox}/bin/
+        PATH=${pkgs.vagrant}/bin/:${pkgs.coreutils}/bin/:${pkgs.gnugrep}/bin/:${pkgs.curl}/bin/:$PATH:${pkgs.virtualbox}/bin/
 
         if ! vagrant box list | grep -q "${imagename}"; then
           vagrant box add "${imagename}" --provider=virtualbox
