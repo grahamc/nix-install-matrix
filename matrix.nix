@@ -178,7 +178,7 @@
         apt-get install -y curl
       '';
     };
-
+*/
     "ubuntu-14-04" = {
       image = "ubuntu/trusty64";
       preInstall = ''
@@ -186,7 +186,7 @@
         apt-get install -y curl
       '';
     };
-*/
+
     "ubuntu-12-04" = {
       image = "ubuntu/precise64";
       preInstall = ''
