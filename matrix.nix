@@ -5,7 +5,7 @@
       stable = "https://nixos.org/nix/install";
       "2.0.4" = "https://nixos.org/releases/nix/nix-2.0.4/install";
     };
-    installUrl = installUrls.pre;
+    installUrl = installUrls.stable;
   in [
     {
       name = "install-default";
