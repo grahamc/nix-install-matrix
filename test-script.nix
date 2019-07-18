@@ -124,7 +124,7 @@ in shellcheckedScript "run-tests.sh"
   set +e
 
   echo "Pre-fetching images"
-  cat <<EOF | ${pkgs.parallel}/bin/parallel -j 4 :::: -
+  cat <<EOF | ${pkgs.findutils}/bin/xargs -L 1 -P 4 bash
   ${pkgs.lib.concatStringsSep "\n"
   (builtins.map (image: mkImageFetchScript image.image)
     (builtins.attrValues filteredImages)
@@ -133,7 +133,7 @@ in shellcheckedScript "run-tests.sh"
 
   echo "Running tests"
 
-  cat <<EOF | ${pkgs.parallel}/bin/parallel "$@" :::: -
+  cat <<EOF | ${pkgs.findutils}/bin/xargs -L 1 -P 4 bash
   ${pkgs.lib.concatStringsSep "\n"
   (builtins.map (case:
     let cmd = mkTestScript case.installMethod case.imageName case.imageConfig;
