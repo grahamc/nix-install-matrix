@@ -79,7 +79,7 @@ image:
 
 Run all the tests:
 
-    nix-build ./test-script.nix && ./result
+    nix-build ./test-script.nix && ./result ./output-directory
 
 Run the tests with all the distros for only the `install-default`
 installation method:
