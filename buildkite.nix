@@ -160,7 +160,7 @@ let
           "./result/bin/treeport --input ./output --output ./report.html"
         ];
         artifact_paths = [
-          "output/report.html"
+          "./report.html"
         ];
     }
   ]);
