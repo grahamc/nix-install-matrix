@@ -97,6 +97,12 @@ Run only one test, of Arch Linux and the default installation method:
     nix-build ./test-script.nix --argstr imageNameFilter arch --argstr installMethodFilter install-default
     ./result
 
+## Generating reports
+
+    cd nix-install-matrix-tools
+    nix-build
+    ./result/bin/treeport --input ./the-input-directory --output ./report.html
+
 ### System Requirements:
 
 You will need a lot of disk space, Nix, and Virtualbox. If you're on
