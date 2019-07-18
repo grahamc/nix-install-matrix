@@ -154,14 +154,6 @@
       '';
     };
 
-    "debian-7" = {
-      image = "debian/wheezy64";
-      preInstall = ''
-        apt-get update
-        apt-get install -y curl
-      '';
-    };
-
     "ubuntu-18-10" = {
       image = "ubuntu/cosmic64";
       preInstall = ''
@@ -172,14 +164,6 @@
 
     "ubuntu-18-04" = {
       image = "ubuntu/bionic64";
-      preInstall = ''
-        apt-get update
-        apt-get install -y curl
-      '';
-    };
-
-    "ubuntu-17-10" = {
-      image = "ubuntu/artful64";
       preInstall = ''
         apt-get update
         apt-get install -y curl
