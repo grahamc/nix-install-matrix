@@ -142,15 +142,21 @@ let
         [
           "rm -rf output"
           "mkdir output"
+          "echo '--- Fetching artifacts'"
         ]
         ++ (builtins.map (case:
           "buildkite-agent artifact download ${case.installMethod.name}-${case.imageName}.tar.gz output/ || true"
         ) casesToRun)
+        ++ [
+          "echo '--- Extracting artifacts'"
+        ]
         ++ (builtins.map (case:
-          "tar -C output -xf ${case.installMethod.name}-${case.imageName}.tar.gz output/${case.installMethod.name}-${case.imageName}.tar.gz || true"
+          "cd output && tar -C output -xf ${case.installMethod.name}-${case.imageName}.tar.gz || true"
         )  casesToRun)
         ++ [
+          "echo '--- Building report tool'"
           "nix-build ./nix-install-matrix-tools/"
+          "echo '--- Building report'"
           "./result/bin/treeport --input ./output --output ./report.html"
         ];
         artifact_paths = [
