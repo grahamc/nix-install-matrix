@@ -127,7 +127,7 @@ let
       "tar -C output -czf ${case.installMethod.name}-${case.imageName}.tar.gz ${case.installMethod.name}-${case.imageName}"
     ];
     artifact_paths = [
-      "output/${case.installMethod.name}-${case.imageName}.tar.gz"
+      "${case.installMethod.name}-${case.imageName}.tar.gz"
     ];
   }) casesToRun
   )
@@ -144,7 +144,7 @@ let
           "mkdir output"
         ]
         ++ (builtins.map (case:
-          "buildkite-agent artifact download output/${case.installMethod.name}-${case.imageName}.tar.gz output/${case.installMethod.name}-${case.imageName}.tar.gz"
+          "buildkite-agent artifact download ${case.installMethod.name}-${case.imageName}.tar.gz output/${case.installMethod.name}-${case.imageName}.tar.gz"
         ) casesToRun)
         ++ (builtins.map (case:
           "tar -C output -xf ${case.installMethod.name}-${case.imageName}.tar.gz output/${case.installMethod.name}-${case.imageName}.tar.gz"
