@@ -17,7 +17,7 @@ let
         "rm -rf ./nix-co"
         ''git clone --branch="$GIT_BRANCH" "$GIT_URL" ./nix-co''
         "cd ./nix-co"
-        ''nix-build ./release.nix -A "binaryTarball.x86_64-linux''
+        ''nix-build ./release.nix -A "binaryTarball.x86_64-linux"''
         "cp ./result/nix-*.tar.bz2 ./nix.x86_64-linux.tar.bz2"
       ];
       artifact_paths = [
