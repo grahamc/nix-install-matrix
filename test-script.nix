@@ -33,7 +33,7 @@ let
     system,
   }: ''
     rm -rf ./nix-co
-    git clone --branch="$GIT_BRANCH" "GIT_URL" ./nix-co
+    git clone --branch="$GIT_BRANCH" "$GIT_URL" ./nix-co
     (
       cd ./nix-co
       nix-build ./release.nix -A "binaryTarball.${system}"
