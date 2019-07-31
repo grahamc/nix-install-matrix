@@ -34,7 +34,7 @@ let
     label = "${case.imageName}: ${case.installMethod.name}";
     command = [
       "echo $HOME"
-      "buildkite-agent artifact download nix.${case.imageConfig.system}.tar.bz2"
+      "buildkite-agent artifact download nix.${case.imageConfig.system}.tar.bz2 ./"
       "rm -rf ./output"
       "mkdir ./output"
       "nix-build ./test-script.nix --argstr imageNameFilter '${case.imageName}' --argstr installMethodFilter '${case.installMethod.name}'"
