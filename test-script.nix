@@ -51,7 +51,7 @@ let
     }
     trap finish EXIT
 
-    cp ./nix.x86_64-linux.tar.bz2 .
+    cp ./nix.x86_64-linux.tar.bz2 "$scratch/"
 
     cd "$scratch"
 
