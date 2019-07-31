@@ -29,17 +29,6 @@ let
     end
   '';
 
-  mkBuildNix = {
-    system,
-  }: ''
-    rm -rf ./nix-co
-    git clone --branch="$GIT_BRANCH" "$GIT_URL" ./nix-co
-    (
-      cd ./nix-co
-      nix-build ./release.nix -A "binaryTarball.${system}"
-    )
-  '';
-
   mkTestScript = installScript: name: imageConfig: shellcheckedScript "run-${installScript.name}-${name}.sh" ''
     #!/bin/sh
 
@@ -72,10 +61,6 @@ let
 
     mkdir log-results
 
-    ${mkBuildNix {
-      inherit (imageConfig) system;
-    }}
-
     cp ${mkVagrantfile name imageConfig} ./Vagrantfile
     cp ./Vagrantfile ./log-results/
 
@@ -85,8 +70,7 @@ let
     (
       vagrant up --provider=virtualbox
 
-      cp ./nix-co/result/nix-*.tar.bz2 ./nix.tar.bz2
-      vagrant ssh -- tee nix.tar.bz2 < ./nix.tar.bz2 > /dev/null
+      vagrant ssh -- tee nix.tar.bz2 < ./nix.${imageConfig.system}.tar.bz2 > /dev/null
 
       vagrant ssh -- tee install < ${shellcheckedScript installScript.name installScript.script}
       vagrant ssh -- chmod +x install
