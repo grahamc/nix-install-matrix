@@ -47,12 +47,14 @@
       # Sketchy :)
       image = "jhcook/macos-sierra";
       preInstall = "";
+      system = "x86_64-darwin";
     };
 
     "macos-highsierra" = {
       # Sketchy :)
       image = "monsenso/macos-10.13";
       preInstall = "";
+      system = "x86_64-darwin";
     };
 
     "arch" = {
@@ -60,6 +62,7 @@
       preInstall = ''
         packman -S --no-confirm rsync
       '';
+      system = "x86_64-linux";
     };
 
     "alpine-3-8" = {
@@ -67,6 +70,7 @@
       preInstall = ''
         apk --no-cache add curl
       '';
+      system = "x86_64-linux";
     };
 
     "alpine-3-7" = {
@@ -74,6 +78,7 @@
       preInstall = ''
         apk --no-cache add curl
       '';
+      system = "x86_64-linux";
     };
 
     "alpine-3-6" = {
@@ -81,6 +86,7 @@
       preInstall = ''
         apk --no-cache add curl
       '';
+      system = "x86_64-linux";
     };
 
     "alpine-3-5" = {
@@ -88,6 +94,7 @@
       preInstall = ''
         apk --no-cache add curl
       '';
+      system = "x86_64-linux";
     };
 
     "fedora-28" = {
@@ -95,6 +102,7 @@
       preInstall = ''
         yum install curl
       '';
+      system = "x86_64-linux";
     };
 
     "fedora-27" = {
@@ -102,6 +110,7 @@
       preInstall = ''
         yum install curl
       '';
+      system = "x86_64-linux";
     };
 
     "fedora-26" = {
@@ -109,6 +118,7 @@
       preInstall = ''
         yum install curl
       '';
+      system = "x86_64-linux";
     };
 
     "fedora-25" = {
@@ -116,6 +126,7 @@
       preInstall = ''
         yum install curl
       '';
+      system = "x86_64-linux";
     };
 
     "gentoo" = {
@@ -123,6 +134,7 @@
       preInstall = ''
         emerge curl
       '';
+      system = "x86_64-linux";
     };
 
     "centos-7" = {
@@ -130,6 +142,7 @@
       preInstall = ''
         yum install curl
       '';
+      system = "x86_64-linux";
     };
 
     "centos-6" = {
@@ -137,6 +150,7 @@
       preInstall = ''
         yum install curl
       '';
+      system = "x86_64-linux";
     };
 
     "debian-9" = {
@@ -145,6 +159,7 @@
         apt-get update
         apt-get install -y curl
       '';
+      system = "x86_64-linux";
     };
 
     "debian-8" = {
@@ -153,6 +168,7 @@
         apt-get update
         apt-get install -y curl
       '';
+      system = "x86_64-linux";
     };
 
     "ubuntu-18-10" = {
@@ -161,6 +177,7 @@
         apt-get update
         apt-get install -y curl
       '';
+      system = "x86_64-linux";
     };
 
     "ubuntu-18-04" = {
@@ -169,6 +186,7 @@
         apt-get update
         apt-get install -y curl
       '';
+      system = "x86_64-linux";
     };
 
     "ubuntu-16-04" = {
@@ -177,6 +195,7 @@
         apt-get update
         apt-get install -y curl
       '';
+      system = "x86_64-linux";
     };
 
     "ubuntu-14-04" = {
@@ -185,6 +204,7 @@
         apt-get update
         apt-get install -y curl
       '';
+      system = "x86_64-linux";
     };
 
     "ubuntu-12-04" = {
@@ -193,6 +213,7 @@
         apt-get update
         apt-get install -y curl
       '';
+      system = "x86_64-linux";
     };
   };
 }
