@@ -126,6 +126,9 @@ let
       "./result ./output"
       "tar -C output -czf ${case.installMethod.name}-${case.imageName}.tar.gz ${case.installMethod.name}-${case.imageName}"
     ];
+    agents = {
+      nix-install-matrix = true;
+    };
     artifact_paths = [
       "${case.installMethod.name}-${case.imageName}.tar.gz"
     ];
