@@ -29,7 +29,18 @@ let
     end
   '';
 
-  mkTestScript = installScript: name: details: shellcheckedScript "run-${installScript.name}-${name}.sh" ''
+  mkBuildNix = {
+    system,
+  }: ''
+    rm -rf ./nix-co
+    git clone --branch="$GIT_BRANCH" "GIT_URL" ./nix-co
+    (
+      cd ./nix-co
+      nix-build ./release.nix -A "binaryTarball.${system}"
+    )
+  '';
+
+  mkTestScript = installScript: name: imageConfig: shellcheckedScript "run-${installScript.name}-${name}.sh" ''
     #!/bin/sh
 
     echo "--- Test script for ${installScript.name}-${name}"
@@ -61,7 +72,11 @@ let
 
     mkdir log-results
 
-    cp ${mkVagrantfile name details} ./Vagrantfile
+    ${mkBuildNix {
+      inherit (imageConfig) system;
+    }}
+
+    cp ${mkVagrantfile name imageConfig} ./Vagrantfile
     cp ./Vagrantfile ./log-results/
 
     echo "${name}" > ./log-results/image-name
@@ -70,10 +85,13 @@ let
     (
       vagrant up --provider=virtualbox
 
+      cp ./nix-co/result/nix-*.tar.bz2 ./nix.tar.bz2
+      vagrant ssh -- tee nix.tar.bz2 < ./nix.tar.bz2 > /dev/null
+
       vagrant ssh -- tee install < ${shellcheckedScript installScript.name installScript.script}
       vagrant ssh -- chmod +x install
 
-      vagrant ssh -- tee testscript < ${testScript name details}
+      vagrant ssh -- tee testscript < ${testScript name imageConfig}
       vagrant ssh -- chmod +x testscript
 
       vagrant ssh -- ./install 2>&1 \
