@@ -21,7 +21,7 @@ let
         "cp ./result/nix-*.tar.bz2 ./nix.x86_64-linux.tar.bz2"
       ];
       artifact_paths = [
-        "nix.*.tar.bz2"
+        "nix.x86_64-linux.tar.bz2"
       ];
     }
     {
