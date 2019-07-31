@@ -51,6 +51,8 @@ let
     }
     trap finish EXIT
 
+    cp ./nix.x86_64-linux.tar.bz2 .
+
     cd "$scratch"
 
     finish() {
