@@ -70,7 +70,7 @@ let
     trap finish EXIT
 
     ${if (imageConfig.hostReqs or {}).httpProxy or false then ''
-      cat  ${lib.squidConfig} | sed -e "s/3128/$port/" > ./squid.cfg
+      sed -e "s/3128/$port/" < ${lib.squidConfig} > ./squid.cfg
       ${pkgs.squid}/bin/squid -f ./squid.cfg -N &
     '' else ""}
 
