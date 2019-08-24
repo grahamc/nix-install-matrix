@@ -41,7 +41,6 @@
   ];
 
   images = {
-    /*
     "macos-sierra" = {
       # Sketchy :)
       image = "jhcook/macos-sierra";
@@ -169,8 +168,8 @@
       '';
       system = "x86_64-linux";
     };
-*/
-    "ubuntu-18-10" = {
+
+    "ubuntu-18-10-proxy" = {
       image = "ubuntu/cosmic64";
       hostReqs = {
         httpProxy = true;
@@ -183,7 +182,16 @@
       '';
       system = "x86_64-linux";
     };
-/*
+
+    "ubuntu-18-10" = {
+      image = "ubuntu/cosmic64";
+      preInstall = ''
+        apt-get update
+        apt-get install -y curl
+      '';
+      system = "x86_64-linux";
+    };
+
     "ubuntu-18-04" = {
       image = "ubuntu/bionic64";
       preInstall = ''
