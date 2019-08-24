@@ -41,6 +41,7 @@
   ];
 
   images = {
+    /*
     "macos-sierra" = {
       # Sketchy :)
       image = "jhcook/macos-sierra";
@@ -168,7 +169,7 @@
       '';
       system = "x86_64-linux";
     };
-
+*/
     "ubuntu-18-10" = {
       image = "ubuntu/cosmic64";
       hostReqs = {
@@ -182,7 +183,7 @@
       '';
       system = "x86_64-linux";
     };
-
+/*
     "ubuntu-18-04" = {
       image = "ubuntu/bionic64";
       preInstall = ''
@@ -218,5 +219,6 @@
       '';
       system = "x86_64-linux";
     };
+*/
   };
 }
