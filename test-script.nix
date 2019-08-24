@@ -104,9 +104,6 @@ let
       '' else ''
       '' }
 
-      vagrant ssh -- curl https://nixos.org
-      exit 0
-
       vagrant ssh -- ./install 2>&1 \
         | sed -e "s/^/${name}-install    /"
 
