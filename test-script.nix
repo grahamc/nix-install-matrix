@@ -102,6 +102,11 @@ let
       vagrant ssh -- tee testscript < ${testScript name imageConfig}
       vagrant ssh -- chmod +x testscript
 
+      printf "\n\n%s\n" "$extra_env" \
+        | vagrant ssh -- sudo tee -a /etc/environment
+      vagrant ssh -- curl https://nixos.org
+      exit 0
+
       vagrant ssh -- env "$extra_env" ./install 2>&1 \
         | sed -e "s/^/${name}-install    /"
 
