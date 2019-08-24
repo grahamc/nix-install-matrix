@@ -14,6 +14,7 @@ let
     Vagrant.configure("2") do |config|
       config.vm.box = "${details.image}"
       config.vm.provision "shell", inline: <<-SHELL
+        set +x
     ${details.preInstall}
       SHELL
       config.vm.synced_folder ".", "/vagrant", disabled: true
