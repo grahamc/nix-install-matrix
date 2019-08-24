@@ -89,7 +89,7 @@ let
       ${if (imageConfig.hostReqs or {}).httpProxy or false then ''
         gw=$(vagrant ssh -- ip route get 4.2.2.2 \
               | head -n1 | cut -d' ' -f3)
-        extra_env="http_proxy=$gw:$port"
+        extra_env="http_proxy=$gw:$port https_proxy=$gw:$port"
       '' else ''
         extra_env=""
       '' }
