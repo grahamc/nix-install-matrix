@@ -70,7 +70,7 @@ let
     trap finish EXIT
 
     ${if (imageConfig.hostReqs or {}).httpProxy or false then ''
-      ${pkgs.squid}/bin/squid -f ${lib.squidConfig} -au "$port"
+      ${pkgs.squid}/bin/squid -f ${lib.squidConfig} -a "$port"
     '' else ""}
 
 
