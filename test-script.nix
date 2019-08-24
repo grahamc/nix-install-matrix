@@ -86,13 +86,6 @@ let
     (
       vagrant up --provider=virtualbox
 
-      ${if (imageConfig.hostReqs or {}).httpProxy or false then ''
-        gw=$(vagrant ssh -- ip route get 4.2.2.2 \
-              | head -n1 | cut -d' ' -f3)
-        extra_env="http_proxy=$gw:$port https_proxy=$gw:$port"
-      '' else ''
-        extra_env=""
-      '' }
 
       vagrant ssh -- tee nix.tar.bz2 < ./nix.${imageConfig.system}.tar.bz2 > /dev/null
 
@@ -102,12 +95,19 @@ let
       vagrant ssh -- tee testscript < ${testScript name imageConfig}
       vagrant ssh -- chmod +x testscript
 
-      printf "\n\n%s\n" "$extra_env" \
-        | vagrant ssh -- sudo tee -a /etc/environment
+      ${if (imageConfig.hostReqs or {}).httpProxy or false then ''
+        gw=$(vagrant ssh -- ip route get 4.2.2.2 \
+              | head -n1 | cut -d' ' -f3)
+        printf "\n\nhttp_proxy=%s:%d\nhttps_proxy=%s:%d\n" \
+          "$gw" "$port" "$gw" "$port" \
+          | vagrant ssh -- sudo tee -a /etc/environment
+      '' else ''
+      '' }
+
       vagrant ssh -- curl https://nixos.org
       exit 0
 
-      vagrant ssh -- env "$extra_env" ./install 2>&1 \
+      vagrant ssh -- ./install 2>&1 \
         | sed -e "s/^/${name}-install    /"
 
       set +e
@@ -115,7 +115,7 @@ let
       runtest() {
         name=$1
         shift
-        vagrant ssh -- "$extra_env" "$@" ./testscript 2>&1 \
+        vagrant ssh -- "$@" ./testscript 2>&1 \
           | sed -e "s/^/${name}-test-$name    /"
         mkdir -p "./log-results/test-results/$name"
         vagrant ssh -- cat ./nix-test-matrix-log.tar | tar -xC "./log-results/test-results/$name"
