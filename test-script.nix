@@ -102,8 +102,9 @@ let
       vagrant ssh -- tee testscript < ${testScript name imageConfig}
       vagrant ssh -- chmod +x testscript
 
-      vagrant ssh -- bash -c "$extra_env env"
-      vagrant ssh -- bash -c "$extra_env ./install" 2>&1 \
+      set -eux
+      vagrant ssh -- bash -xc "$extra_env env"
+      vagrant ssh -- bash -xc "$extra_env ./install" 2>&1 \
         | sed -e "s/^/${name}-install    /"
 
       set +e
