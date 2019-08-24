@@ -69,6 +69,7 @@ rec {
       # Only allow cachemgr access from localhost
       http_access allow localhost manager
       http_access deny manager
+      http_port 3128
       # We strongly recommend the following be uncommented to protect innocent
       # web applications running on the proxy server who think the only
       # one who can access services on "localhost" is a local user
