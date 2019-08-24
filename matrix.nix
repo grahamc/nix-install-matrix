@@ -171,9 +171,14 @@
 
     "ubuntu-18-10" = {
       image = "ubuntu/cosmic64";
+      hostReqs = {
+        httpProxy = true;
+      };
       preInstall = ''
         apt-get update
         apt-get install -y curl
+        iptables -A OUTPUT -p tcp --dport 80 -j DROP
+        iptables -A OUTPUT -p tcp --dport 443 -j DROP
       '';
       system = "x86_64-linux";
     };

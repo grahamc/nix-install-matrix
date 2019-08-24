@@ -55,11 +55,24 @@ let
 
     cd "$scratch"
 
+    ${if (imageConfig.hostReqs or {}).httpProxy or false then ''
+      port=$(shuf -i 2000-65000 -n 1)
+    '' else ""}
+
+
     finish() {
+    ${if (imageConfig.hostReqs or {}).httpProxy or false then ''
+      kill -9 "$(cat ./squid.pid)"
+    '' else "" }
       vagrant destroy --force
       rm -rf "$scratch"
     }
     trap finish EXIT
+
+    ${if (imageConfig.hostReqs or {}).httpProxy or false then ''
+      ${pkgs.squid}/bin/squid -f ${lib.squidConfig} -au "$port"
+    '' else ""}
+
 
     mkdir log-results
 
@@ -72,6 +85,14 @@ let
     (
       vagrant up --provider=virtualbox
 
+      ${if (imageConfig.hostReqs or {}).httpProxy or false then ''
+        gw=$(vagrant ssh -- ip route get 4.2.2.2 \
+              | head -n1 | cut -d' ' -f3)
+        extra_env="http_proxy=$gw:$port"
+      '' else ''
+        extra_env=""
+      '' }
+
       vagrant ssh -- tee nix.tar.bz2 < ./nix.${imageConfig.system}.tar.bz2 > /dev/null
 
       vagrant ssh -- tee install < ${shellcheckedScript installScript.name installScript.script}
@@ -80,7 +101,7 @@ let
       vagrant ssh -- tee testscript < ${testScript name imageConfig}
       vagrant ssh -- chmod +x testscript
 
-      vagrant ssh -- ./install 2>&1 \
+      vagrant ssh -- "$extra_env" ./install 2>&1 \
         | sed -e "s/^/${name}-install    /"
 
       set +e
@@ -88,7 +109,7 @@ let
       runtest() {
         name=$1
         shift
-        vagrant ssh -- "$@" ./testscript 2>&1 \
+        vagrant ssh -- "$extra_env" "$@" ./testscript 2>&1 \
           | sed -e "s/^/${name}-test-$name    /"
         mkdir -p "./log-results/test-results/$name"
         vagrant ssh -- cat ./nix-test-matrix-log.tar | tar -xC "./log-results/test-results/$name"
