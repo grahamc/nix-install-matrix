@@ -56,11 +56,6 @@ let
 
     cd "$scratch"
 
-    ${if (imageConfig.hostReqs or {}).httpProxy or false then ''
-      port=$(shuf -i 2000-65000 -n 1)
-    '' else ""}
-
-
     finish() {
       vagrant destroy --force
       rm -rf "$scratch"
