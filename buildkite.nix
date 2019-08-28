@@ -33,7 +33,7 @@ let
         "rm -rf ./nix-co"
         ''git clone --branch="$GIT_BRANCH" "$GIT_URL" ./nix-co''
         "cd ./nix-co"
-        ''nix-build ./release.nix -A "binaryTarball.x86_64-darwin"''
+        ''nix-build ./release.nix -A "binaryTarball.x86_64-darwin" --system x86_64-darwin''
         "cp ./result/nix-*.tar.bz2 ../nix.x86_64-darwin.tar.bz2"
       ];
       artifact_paths = [
