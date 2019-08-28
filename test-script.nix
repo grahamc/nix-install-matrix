@@ -62,19 +62,10 @@ let
 
 
     finish() {
-    ${if (imageConfig.hostReqs or {}).httpProxy or false then ''
-      kill -9 "$(cat ./squid.pid)"
-    '' else "" }
       vagrant destroy --force
       rm -rf "$scratch"
     }
     trap finish EXIT
-
-    ${if (imageConfig.hostReqs or {}).httpProxy or false then ''
-      sed -e "s/3128/$port/" < ${lib.squidConfig} > ./squid.cfg
-      ${pkgs.squid}/bin/squid -f ./squid.cfg -N &
-    '' else ""}
-
 
     mkdir log-results
 
@@ -100,7 +91,7 @@ let
         gw=$(vagrant ssh -- ip route get 4.2.2.2 \
               | head -n1 | cut -d' ' -f3)
         printf "\n\nhttp_proxy=%s:%d\nhttps_proxy=%s:%d\n" \
-          "$gw" "$port" "$gw" "$port" \
+          "$gw" "3128" "$gw" "3128" \
           | vagrant ssh -- sudo tee -a /etc/environment
       '' else ''
       '' }
