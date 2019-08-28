@@ -52,7 +52,7 @@ let
     }
     trap finish EXIT
 
-    cp ./nix.x86_64-linux.tar.bz2 "$scratch/"
+    cp ./nix.${imageConfig.system}.tar.bz2 "$scratch/"
 
     cd "$scratch"
 
