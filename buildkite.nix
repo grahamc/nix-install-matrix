@@ -40,7 +40,6 @@ let
         "./nix.x86_64-darwin.tar.bz2"
       ];
       agents = {
-        nix-install-matrix = true;
         darwin = true;
       };
     }
