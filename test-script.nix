@@ -117,7 +117,7 @@ let
   mkImageFetchScript = imagename:
     shellcheckedScript "fetch-image"
       ''
-        #!/bin/sh
+        #!/bin/bash
 
         echo "--- Fetching ${imagename}"
 
