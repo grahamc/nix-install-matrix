@@ -12,7 +12,7 @@ let
 { steps = (
   [
     {
-      label = "build Nix";
+      label = "build Nix (x86_64-linux)";
       command = [
         "rm -rf ./nix-co"
         ''git clone --branch="$GIT_BRANCH" "$GIT_URL" ./nix-co''
@@ -23,10 +23,29 @@ let
       artifact_paths = [
         "./nix.x86_64-linux.tar.bz2"
       ];
+      agents = {
+        nix-install-matrix = true;
+      };
+    }
+    {
+      label = "build Nix (x86_64-darwin)";
+      command = [
+        "rm -rf ./nix-co"
+        ''git clone --branch="$GIT_BRANCH" "$GIT_URL" ./nix-co''
+        "cd ./nix-co"
+        ''nix-build ./release.nix -A "binaryTarball.x86_64-darwin" --system x86_64-darwin''
+        "cp ./result/nix-*.tar.bz2 ../nix.x86_64-darwin.tar.bz2"
+      ];
+      artifact_paths = [
+        "./nix.x86_64-darwin.tar.bz2"
+      ];
+      agents = {
+        darwin = true;
+      };
     }
     {
       wait = "~";
-      continue_on_failure = false;
+      continue_on_failure = true;
     }
   ]
   ++ (builtins.map (case:
@@ -43,7 +62,9 @@ let
     ];
     agents = {
       nix-install-matrix = true;
-    };
+    } // (if (case.imageConfig.hostReqs or {}).httpProxy or false then {
+      squid = true;
+    } else {});
     artifact_paths = [
       "${case.installMethod.name}-${case.imageName}.tar.gz"
     ];

@@ -14,6 +14,7 @@ let
     Vagrant.configure("2") do |config|
       config.vm.box = "${details.image}"
       config.vm.provision "shell", inline: <<-SHELL
+        set +x
     ${details.preInstall}
       SHELL
       config.vm.synced_folder ".", "/vagrant", disabled: true
@@ -51,7 +52,7 @@ let
     }
     trap finish EXIT
 
-    cp ./nix.x86_64-linux.tar.bz2 "$scratch/"
+    cp ./nix.${imageConfig.system}.tar.bz2 "$scratch/"
 
     cd "$scratch"
 
@@ -72,6 +73,7 @@ let
     (
       vagrant up --provider=virtualbox
 
+
       vagrant ssh -- tee nix.tar.bz2 < ./nix.${imageConfig.system}.tar.bz2 > /dev/null
 
       vagrant ssh -- tee install < ${shellcheckedScript installScript.name installScript.script}
@@ -79,6 +81,15 @@ let
 
       vagrant ssh -- tee testscript < ${testScript name imageConfig}
       vagrant ssh -- chmod +x testscript
+
+      ${if (imageConfig.hostReqs or {}).httpProxy or false then ''
+        gw=$(vagrant ssh -- ip route get 4.2.2.2 \
+              | head -n1 | cut -d' ' -f3)
+        printf "\n\nhttp_proxy=%s:%d\nhttps_proxy=%s:%d\n" \
+          "$gw" "3128" "$gw" "3128" \
+          | vagrant ssh -- sudo tee -a /etc/environment
+      '' else ''
+      '' }
 
       vagrant ssh -- ./install 2>&1 \
         | sed -e "s/^/${name}-install    /"
