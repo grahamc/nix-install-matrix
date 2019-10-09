@@ -18,10 +18,10 @@ let
         ''git clone --branch="$GIT_BRANCH" "$GIT_URL" ./nix-co''
         "cd ./nix-co"
         ''nix-build ./release.nix -A "binaryTarball.x86_64-linux"''
-        "cp ./result/nix-*.tar.bz2 ../nix.x86_64-linux.tar.bz2"
+        "cp ./result/nix-*.tar.xz ../nix.x86_64-linux.tar.xz"
       ];
       artifact_paths = [
-        "./nix.x86_64-linux.tar.bz2"
+        "./nix.x86_64-linux.tar.xz"
       ];
       agents = {
         nix-install-matrix = true;
@@ -34,10 +34,10 @@ let
         ''git clone --branch="$GIT_BRANCH" "$GIT_URL" ./nix-co''
         "cd ./nix-co"
         ''nix-build ./release.nix -A "binaryTarball.x86_64-darwin" --system x86_64-darwin''
-        "cp ./result/nix-*.tar.bz2 ../nix.x86_64-darwin.tar.bz2"
+        "cp ./result/nix-*.tar.xz ../nix.x86_64-darwin.tar.xz"
       ];
       artifact_paths = [
-        "./nix.x86_64-darwin.tar.bz2"
+        "./nix.x86_64-darwin.tar.xz"
       ];
       agents = {
         darwin = true;
@@ -53,7 +53,7 @@ let
     label = "${case.imageName}: ${case.installMethod.name}";
     command = [
       "echo $HOME"
-      "buildkite-agent artifact download nix.${case.imageConfig.system}.tar.bz2 ./"
+      "buildkite-agent artifact download nix.${case.imageConfig.system}.tar.xz ./"
       "rm -rf ./output"
       "mkdir ./output"
       "nix-build ./test-script.nix --argstr imageNameFilter '${case.imageName}' --argstr installMethodFilter '${case.installMethod.name}'"

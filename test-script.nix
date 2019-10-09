@@ -52,7 +52,7 @@ let
     }
     trap finish EXIT
 
-    cp ./nix.${imageConfig.system}.tar.bz2 "$scratch/"
+    cp ./nix.${imageConfig.system}.tar.xz "$scratch/"
 
     cd "$scratch"
 
@@ -74,7 +74,7 @@ let
       vagrant up --provider=virtualbox
 
 
-      vagrant ssh -- tee nix.tar.bz2 < ./nix.${imageConfig.system}.tar.bz2 > /dev/null
+      vagrant ssh -- tee nix.tar.xz < ./nix.${imageConfig.system}.tar.xz > /dev/null
 
       vagrant ssh -- tee install < ${shellcheckedScript installScript.name installScript.script}
       vagrant ssh -- chmod +x install

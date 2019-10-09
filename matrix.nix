@@ -7,7 +7,7 @@
 
         set -eux
 
-        tar -xf ./nix.tar.bz2
+        tar -xf ./nix.tar.xz
         mv ./nix-* nix
         ./nix/install
       '';
@@ -20,7 +20,7 @@
 
         set -eux
 
-        tar -xf ./nix.tar.bz2
+        tar -xf ./nix.tar.xz
         mv ./nix-* nix
         ./nix/install --no-daemon
       '';
@@ -33,7 +33,7 @@
 
         set -eux
 
-        tar -xf ./nix.tar.bz2
+        tar -xf ./nix.tar.xz
         mv ./nix-* nix
         ./nix/install  --daemon
       '';
