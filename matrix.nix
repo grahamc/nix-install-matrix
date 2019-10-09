@@ -138,7 +138,7 @@
     "centos-7" = {
       image = "centos/7";
       preInstall = ''
-        yum install curl
+        yum --assumeyes install curl
       '';
       system = "x86_64-linux";
     };
@@ -146,7 +146,7 @@
     "centos-6" = {
       image = "centos/6";
       preInstall = ''
-        yum install curl
+        yum --assumeyes install curl
       '';
       system = "x86_64-linux";
     };
