@@ -58,7 +58,7 @@
     "arch" = {
       image = "generic/arch";
       preInstall = ''
-        packman -S --no-confirm rsync
+        pacman -S --noconfirm rsync
       '';
       system = "x86_64-linux";
     };
